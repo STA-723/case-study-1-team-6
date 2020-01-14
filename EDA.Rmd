@@ -1,0 +1,35 @@
+---
+title: "EDA"
+output: html_document
+---
+
+```{r}
+source("prettyplot.R")
+library(tidyverse)
+```
+
+```{r}
+data = readRDS("Longnecker.rds")
+head(data)
+```
+
+```{r}
+PCB_vars = c("pcb_028", "pcb_052", "pcb_074", "pcb_105", "pcb_118", "pcb_153", "pcb_170", "pcb_138", "pcb_180", "pcb_194", "pcb_203")
+
+non_PCB_vars = colnames(data)[!colnames(data) %in% PCB_vars]
+
+cor.im(data[!is.na(rowSums(data[, PCB_vars])), PCB_vars])
+
+```
+
+```{r}
+dat = data %>% mutate(premature = ifelse(gestational_age < 34, 1, 0))
+out = glm(premature ~ (log(dde) + score_education + score_income + score_occupation + log(maternal_age) + pcb_028 + pcb_052 + pcb_074 + pcb_105 + cholesterol + triglycerides)*smoking_status, family=binomial, data=dat)
+
+summary(out)
+```
+
+
+
+
+

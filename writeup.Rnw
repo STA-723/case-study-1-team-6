@@ -1,0 +1,36 @@
+
+\documentclass[11pt]{article}
+
+%\usepackage[french]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{appendix}
+\usepackage{hyperref}
+
+
+% Titles specifications
+\newcommand{\hmwkTitle}{Case study 1}
+\newcommand{\hmwkDueDate}{\today}
+\newcommand{\hmwkClass}{STA 723}
+\newcommand{\hmwkClassTime}{}
+\newcommand{\hmwkClassInstructor}{Professor David Dunson}
+\newcommand{\hmwkAuthorName}{\textbf{Olivier Binette, Joe Mathews and Brian Kundinger}}
+\newcommand{\smallAuthorName}{\textbf{Olivier, Joe and Brian}}
+
+\newcounter{homeworkProblemCounter}
+\setcounter{homeworkProblemCounter}{1}
+\input{header-en}
+
+
+\begin{document}
+% Make title.
+\clearpage\maketitle
+\thispagestyle{empty}
+\pagebreak
+
+{\bf Exploratory Data Analysis}\\
+
+Sweave template.
+
+\end{document}
