@@ -1,17 +1,78 @@
 ---
-title: "EDA"
-output: html_document
+title: "Exploratory Data Analysis"
+output:
+  html_document:
+    code_folding: hide
+    df_print: paged
+    theme: flatly
+    toc: true
+    number_sections: false
+    toc_depth: 2
+    toc_float: 
+      collapsed: false
+
 ---
 
-```{r}
+```{r, message=FALSE}
 source("prettyplot.R")
 library(tidyverse)
 ```
+
+This dataset from the National Collaborative Perinatal Project (CPP) relates gestational age to chemical exposure (DDE and PCBs) and other factors in pregnant 2380 women enrolled through medical centers. The goal is to assess how exposure to DDE and PCBs impact the risk of premature delivery
 
 ```{r}
 data = readRDS("Longnecker.rds")
 head(data)
 ```
+
+A preliminary look at the data shows that the variable albumin contains mostly NA values, and I therefore remove it.
+
+```{r}
+data = data %>% 
+  select(-albumin) %>% 
+  filter(gestational_age < 60)
+```
+
+Otherwise, 22% of the rows contain at least one NA value. None of the response variable `gestational_age` is NA. We define the variable `complete_data` containing only the rows without any missing values.
+
+```{r}
+any(is.na(data$gestational_age))
+mean(!complete.cases(data)) %>% round(2)
+
+complete_data = data[complete.cases(data), ]
+```
+
+## Gestational age
+
+We now look more closely at the measured gestational age in women enrolled in the study.
+
+Only 15% have prematurely delivered, and 4% have delivered before 34 weeks (which is likely to lead to medical complications [REFERENCE NEEDED]).
+
+```{r}
+mean(data$gestational_age < 37) %>% round(2)
+mean(data$gestational_age < 34) %>% round(2)
+```
+
+We also see higher preterm risks among non-white women and smokers.
+
+
+```{r}
+data %>% 
+  mutate(smoking_status = ifelse(smoking_status, "smoking", "non-smoking")) %>% 
+  group_by(race, smoking_status) %>% 
+  summarise(preterm_risk = mean(1*(gestational_age < 37))) %>% 
+  ggplot(aes(weight=preterm_risk, x=race, fill=smoking_status)) +
+  geom_bar() +
+  ylab("Risk of preterm birth") +
+  theme_minimal() +
+  facet_grid(cols=vars(smoking_status))
+
+
+
+```
+
+
+
 
 ```{r}
 PCB_vars = c("pcb_028", "pcb_052", "pcb_074", "pcb_105", "pcb_118", "pcb_153", "pcb_170", "pcb_138", "pcb_180", "pcb_194", "pcb_203")
