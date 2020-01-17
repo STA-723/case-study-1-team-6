@@ -60,18 +60,18 @@ plot <-
            ymark.label = NULL,
            axes = T,
            ...) {
-
+    
     # Adjusting colors.
     if(!anyNA(suppressWarnings(as.numeric(col))) && all.equal(as.numeric(col), as.integer(col))) {
       col <- find_color(col, cmap)
     }
     col <- adjustcolor(col, alpha.f = alpha)
-
+    
     # Adjusting sizes
     if (!missing(ptscale)) {
       cex <- cex*exp(ptscale/10)
     }
-
+    
     # Default box style.
     box_style = list(boxcol = rgb(1,1,1,0),
                      boxfill = rgb(1,1,1,0),
@@ -83,7 +83,7 @@ plot <-
                      outcex = .33,
                      whisklwd = 1,
                      outpch = 5)
-
+    
     # Figuring out the labels. In simple cases automatic labelling is used. Otherwise labels are empty by default.
     if (missing(y)) {
       if (missing(xlab) && missing(ylab)) {
@@ -102,25 +102,25 @@ plot <-
         xlab <- if(missing(xlab)) "" else xlab
         ylab <- if(missing(ylab)) "" else ylab
         graphics::plot(x, xlab=xlab, ylab=ylab, col=col, pch=pch, bty=bty, tcl=tcl,
-                         mgp=mgp, cex.axis=cex.axis, cex=cex,
-                         family=family, axes=FALSE, ...);
+                       mgp=mgp, cex.axis=cex.axis, cex=cex,
+                       family=family, axes=FALSE, ...);
       }
     }
     else {
       xlab <- if (missing(xlab)) deparse(substitute(x)) else xlab;
       ylab <- if (missing(ylab)) deparse(substitute(y)) else ylab;
       graphics::plot(x, y, xlab=xlab, ylab=ylab, col=col, pch=pch, bty=bty,
-                       tcl=tcl, mgp=mgp, cex.axis=cex.axis, cex=cex,
-                       family=family, axes=FALSE, ...);
+                     tcl=tcl, mgp=mgp, cex.axis=cex.axis, cex=cex,
+                     family=family, axes=FALSE, ...);
     }
-
+    
     if (axes) {
       x_axis(family=family, mark=xmark, mark.label = xmark.label,
              cex.axis=cex.axis)
       y_axis(family=family, mark=ymark, mark.label=ymark.label,
              cex.axis=cex.axis)
     }
-
+    
   }
 
 lines <-
@@ -129,13 +129,13 @@ lines <-
            cmap = prettyplot.DEFAULT_CMAP,
            col = 1,                # Color
            ...) {
-
+    
     # Adjusting colors.
     if(!anyNA(suppressWarnings(as.numeric(col))) && all.equal(as.numeric(col), as.integer(col))) {
       col <- find_color(col, cmap)
     }
     col <- adjustcolor(col, alpha.f = alpha)
-
+    
     if (missing(y)) graphics::lines(x, col=col, ...)
     else graphics::lines(x, y, col=col, ...)
   }
@@ -147,13 +147,13 @@ points <-
            col = 1,                # Color
            pch = 20,               # Point style.
            ...) {
-
+    
     # Adjusting colors.
     if(!anyNA(suppressWarnings(as.numeric(col))) && all.equal(as.numeric(col), as.integer(col))) {
       col <- find_color(col, cmap)
     }
     col <- adjustcolor(col, alpha.f = alpha)
-
+    
     if (missing(y)) graphics::points(x, col=col, pch=pch, ...)
     else graphics::points(x, y, col=col, pch=pch, ...)
   }
@@ -180,10 +180,9 @@ boxplot <-
            xlab = NULL,
            ylab = NULL,
            cex = 1,
-           cex.axis = .8,
-           whisklwd = 1
+           cex.axis = .8
   ) {
-
+    
     # Default box style.
     box_style = list(boxcol = rgb(1,1,1,0),
                      boxfill = rgb(1,1,1,0),
@@ -193,10 +192,10 @@ boxplot <-
                      whisklty = c(1, 1),
                      staplelty = "blank",
                      outcex = .15,
-                     whisklwd = whisklwd,
-                     outpch = 16,
+                     whisklwd = 1,
+                     outpch = 5,
                      boxwex = 0.1)
-
+    
     # Adjusting colors.
     if(!missing(color)) {
       col <- find_color(color, cmap)
@@ -215,7 +214,7 @@ boxplot <-
     if(!missing(color.line)) {
       box_style$whiskcol <- find_color(color.line, cmap)
     }
-
+    
     # Adjusting sizes.
     if (!missing(scale.mid)) {
       box_style$medcex <- box_style$medcex*exp(scale.mid/10)
@@ -226,20 +225,20 @@ boxplot <-
     if(!missing(linewidth)) {
       box_style$whisklwd <- linewidth
     }
-
-
+    
+    
     if (!missing(pars)) {
       box_style[names(pars)] <- pars
     }
-
+    
     graphics::boxplot(x, ..., pars=box_style, tcl = -0.15, axes=F)
-
+    
     # Axes placement.
     if (axes) {
       x_axis(family=family, lwd=-1, at=xticks, labels=xticks_labels, cex.axis=cex.axis)
       y_axis(family=family, cex.axis=cex.axis)
     }
-
+    
     # Titles placement.
     title(main=main, sub=sub, xlab=xlab, ylab=ylab, family=family, line=2)
   }
@@ -263,7 +262,7 @@ hist <-
            xmark = NULL,
            xmark.label = NULL,
            ...) {
-
+    
     # Adjusting colors.
     if (!missing(cmap)) {
       col <- cmap(col)
@@ -273,19 +272,19 @@ hist <-
       col <- cmap.seaborn(col)
       col <- adjustcolor(col, alpha.f = alpha)
     }
-
+    
     # Automatic number of bins.
     if (missing(breaks)) {
       breaks <- 3*floor(length(x)^.33) + 3
     }
-
+    
     h = graphics::hist(x, xlab=xlab, ylab=ylab, main=main, col=col, border=border,
                        freq=freq, breaks=breaks, yaxt=yaxt, lwd=lwd, tcl=tcl, mgp=mgp,
                        cex.axis=cex.axis, family=family, axes=F, ...)
     if (axes) {
       x_axis(family=family, cex.axis=cex.axis, mark=xmark, mark.label = xmark.label)
     }
-
+    
     # Bins separation lines. The separation disapears at high bin count.
     nBreak = length(h$breaks)
     if (nBreak < 150) {
@@ -293,7 +292,7 @@ hist <-
              col = rgb(1,1,1,2*exp(-nBreak/50)/(1+exp(-nBreak/50))),
              lwd=0.5)
     }
-
+    
     if (tufte.style) {
       q = quantile(x, probs=c(0.05, .35, .65, 0.95))
       rug(mean(x), lwd=1.5, lend=1)
@@ -308,22 +307,22 @@ plot.envelopes <- function(out, level) {
   r = range(out$x[,2]) * c(-1.1, 1.1)
   points = seq(r[1], r[2], length.out = 200)
   x = cbind(1, points)
-
+  
   # Computing mean and variances
   mean = x %*% c(out$coefficients[[1]], out$coefficients[[2]])
   XtX.inv = solve(crossprod(out$x))
   sig.est = summary(out)$sigma
-
+  
   # Computing interval lengths
   cs = colSums( t(x) * (XtX.inv %*% t(x)))
   size1 = sig.est * sqrt( 2* qf(.95, 2, out$df) * cs )
-
+  
   polygon(c(points, rev(points)), c(mean-size1, rev(mean+size1)),
           border=NA, col=adjustcolor(cmap.knitr(0), alpha.f=.15))
 }
 
 cor.im <- function(df, order="", size=1) {
-
+  
   # Ordering variables
   if (order == "hclust") {
     df = df[, order.dendrogram(as.dendrogram(hclust(dist(cor(df)))))]
@@ -331,7 +330,7 @@ cor.im <- function(df, order="", size=1) {
   else if (order == "magnitude") {
     df = df[, order(rowSums(abs(cor(df))))]
   }
-
+  
   n = length(df)
   image(x = 1:n, y = 1:n, z = cor(df)[,n:1], zlim = c(-1,1),
         xlab = "", ylab = "",
@@ -349,7 +348,7 @@ cor.im <- function(df, order="", size=1) {
 
 
 mat.im <- function(df, mat, order="", size=1) {
-
+  
   # Ordering variables
   if (order == "hclust") {
     df = df[, order.dendrogram(as.dendrogram(hclust(dist(cor(df)))))]
@@ -357,7 +356,7 @@ mat.im <- function(df, mat, order="", size=1) {
   else if (order == "magnitude") {
     df = df[, order(rowSums(abs(cor(df))))]
   }
-
+  
   n = length(df)
   image(x = 1:n, y = 1:n, z = mat[,n:1], zlim = c(-1,1),
         xlab = "", ylab = "",
