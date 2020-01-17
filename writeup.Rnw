@@ -127,36 +127,36 @@ Relationship with DDE.
 <<echo=FALSE, warning=FALSE, message=FALSE, fig.width=8, fig.height=2.5, fig.align="center">>=
 
 # Accounting for other variables through a GAM
-library(mgcv)
-complete_data = data %>% filter(n_col_NA == 0)
+#library(mgcv)
+#complete_data = data %>% filter(n_col_NA == 0)
 
-out = gam(gestational_age ~ race + smoking_status + center + 
-            s(score_income) + s(score_education) + s(score_occupation) + s(maternal_age) + s(score_income*maternal_age), data=complete_data)
+#out = gam(gestational_age ~ race + smoking_status + center + 
+#            s(score_income) + s(score_education) + s(score_occupation) + s#(maternal_age) + s(score_income*maternal_age), data=complete_data)
 
-with(complete_data,
-  plot(data.frame(gestational_age, 
-                  GAM_residuals=out$residuals, 
-                  RF_residuals = complete_data$gestational_age - predict(outrf, complete_data),
-                  log(dde/cholesterol),
-                  PCB_summary), 
-       alpha=0.3, axes=F, col=race)
-)
+#with(complete_data,
+#  plot(data.frame(gestational_age, 
+#                  GAM_residuals=out$residuals, 
+#                  RF_residuals = complete_data$gestational_age - predict(outrf, complete_data),
+#                  log(dde/cholesterol),
+#                  PCB_summary), 
+#       alpha=0.3, axes=F, col=race)
+#)
 @
 
-<<>>=
-library(randomForest)
+<<echo=FALSE>>=
+#library(randomForest)
 
-outrf = randomForest(gestational_age ~ smoking_status + race + center + score_education + score_income + score_occupation + dde + PCB_summary, data=complete_data)
+#outrf = randomForest(gestational_age ~ smoking_status + race + center + score_education + score_income + score_occupation + dde + PCB_summary, data=complete_data)
 
-outrf
+#outrf
 
-plot(predict(outrf, complete_data), complete_data$gestational_age)
+#plot(predict(outrf, complete_data), complete_data$gestational_age)
 
-plot(out$fitted.values, complete_data$gestational_age)
+#plot(out$fitted.values, complete_data$gestational_age)
 
-library(rfUtilities)
+#library(rfUtilities)
 
-rf.crossValidation(outrf, complete_data)
+#rf.crossValidation(outrf, complete_data)
 
 @
 
