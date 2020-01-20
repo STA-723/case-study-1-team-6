@@ -35,13 +35,36 @@ EDA
 
 
 
-
 Imputation
 ========================================================
+
+* Approximately 79% of the observations were complete cases. Most incomplete cases came from the "score" variables.
+
+* A standard Bayesian approach to data imputation was taken for each score variable:
+    * The observed score variables were regressed onto the other predictors.
+    * Missing values were treated as model parameters and were estimated using their respective posterior mean.
+* A few potential problems with this approch:
+    * Treating each score variable as a linear function of the other predictors is hard to justify.
+    * Multicolinearity amongst the predictors (e.g., _cholesterol_ and _triglycerides_).
+* Possible improvements:
+    * Propogate uncertainty associated with using imputation methods.
+    * Apply a non-linear model to estimate missing values. 
 
 
 Model
 ========================================================
+
+
+
+Conclusion
+========================================================
+
+* Multicolinearity amongst the predictors is a poential issue with the analysis
+  * 
+
+
+
+
 
 
 
