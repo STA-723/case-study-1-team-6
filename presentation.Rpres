@@ -4,15 +4,23 @@ Effect of chemical exposure on preterm risk
 author: Olivier Binette, Brian Kundinger and Joe Mathews
 date: January 21, 2020
 autosize: true
+transition: linear
+css: rpres.css
 
-The Longnecker dataset
+Longnecker data and the Collaborative Perinatal Project
 ======================================================== 
 
-For more details on authoring R presentations please visit <https://support.rstudio.com/hc/en-us/articles/200486468>.
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+- Data from the National Collaborative Perinatal Project (CPP) 
+- Relates gestational age to chemical exposure (DDE and PCBs) and other factors in 2380 pregnant women.
+
+## Goal:
+- Assess how exposure to DDE and PCBs impact the risk of preterm birth, defined as delivery before 37 weeks.
+
+Overview of the data
+======================================================== 
+
+
 
 Slide With Code
 ========================================================
