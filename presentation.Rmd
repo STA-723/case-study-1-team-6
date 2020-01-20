@@ -7,7 +7,7 @@ output:
 ## Longnecker data and the Collaborative Perinatal Project
 
 - Data from the National Collaborative Perinatal Project (CPP) 
-- Relates gestational age to chemical exposure (DDE and PCBs) and other factors in 2380 pregnant women. 
+- Relates gest  ational age to chemical exposure (DDE and PCBs) and other factors in 2380 pregnant women. 
 
 ### Goal:
 
@@ -44,7 +44,8 @@ data = readRDS("Longnecker.rds") %>%
          center = factor(center),
          n_col_NA = rowSums(cbind(is.na(score_education), 
                                   is.na(score_income), 
-                                  is.na(score_occupation)))
+                                  is.na(score_occupation))),
+         totalpcb = pcb_028 + pcb_052 + pcb_074 + pcb_105 + pcb_118 + pcb_153 + pcb_170 + pcb_138 + pcb_180 +pcb_194 +pcb_203
          )
 
 PCB_vars = c("pcb_028", "pcb_052", "pcb_074", "pcb_105", "pcb_118", "pcb_153", "pcb_170", "pcb_138", "pcb_180", "pcb_194", "pcb_203")
@@ -80,15 +81,131 @@ mean(is.na(
   ))
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 ggplot(data, aes(x = gestational_age, color = race)) +
   geom_density(aes(linetype=smoking_status), bw=0.8, size=1.5) +
   theme_minimal() +
-  theme(text = element_text(size=16), 
+  theme(text = element_text(size=20), 
       legend.position = "right",
-      legend.key.size = unit(0.85, "cm"),
+      legend.key.size = unit(1, "cm"),
       plot.title = element_text(hjust = 0))
 ```
 
+## A look at the data
+
+```{r, echo=FALSE, warning=FALSE, fig.height=5}
+p3 = data %>% ggplot(aes(x=dde, color=term_class)) + 
+  geom_density(bw=10, size=1.2) + 
+  theme_minimal() + 
+  theme(legend.position = "none") + 
+  theme(text = element_text(size=20), 
+    plot.title = element_text(hjust = 0)) +
+  facet_wrap(vars(race))
+
+p4 = data %>% ggplot(aes(x=totalpcb, color=term_class)) + 
+  geom_density(bw=1.4, size=1.2) + 
+  theme_minimal() + 
+  theme(text = element_text(size=20), 
+    legend.position="right",
+    legend.key.size = unit(1, "cm"),
+    plot.title = element_text(hjust = 0)) +
+  facet_wrap(vars(race))
+
+cowplot::plot_grid(p3, p4, rel_widths = c(1,1.5))
+```
+
+## A look at the data
+
+
+
+## Imputation
+
+- Approximately 79% of the observations were complete cases. Most incomplete cases came from the "score" variables.
+
+- A standard Bayesian approach to data imputation was taken for each score variable:
+    - The observed score variables were regressed onto the other predictors.
+    - Missing values were treated as model parameters and were estimated using their respective posterior mean.
+- A few potential problems with this approch:
+    - Treating each score variable as a linear function of the other predictors is hard to justify.
+    - Multicolinearity amongst the predictors (e.g., _cholesterol_ and _triglycerides_).
+- Possible improvements:
+    - Propogate uncertainty associated with using imputation methods.
+    - Apply a non-linear model to estimate missing values. 
+
 
 ## Model
+
+We first define "preterm" as gestational age less than 37 months, and compare it to "early preterm," defined as  gestational age less than 34 months.
+
+We use logistic regression to regress preterm against all other variables, and find that dde, totalpcb, triglycerides, race, and center 37 are statistically significant
+```{r}
+require(dplyr)
+require(BAS)
+data = readRDS("Longnecker.rds")
+
+data = data %>%
+ select(-albumin) %>%
+ filter(gestational_age < 60)
+ mutate
+
+complete_data = data[complete.cases(data), ]
+complete_data <- mutate(complete_data, preterm = case_when(
+ gestational_age<37 ~ 1,
+ gestational_age>=37 ~ 0
+), earlypreterm = case_when(
+ gestational_age<34 ~ 1,
+ gestational_age>=34 ~ 0
+), totalpcb = pcb_028 + pcb_052 + pcb_074 + pcb_105 + pcb_118 + pcb_153 + pcb_170 + pcb_138 + pcb_180 +pcb_194 +pcb_203,
+ race = factor(ifelse(race=="white", "white", "other")),
+ center = factor(center),
+ smoking_status = factor(ifelse(smoking_status, "smoking", "non-smoking"))
+)
+
+#Models for preterm
+model.base <- glm(preterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center-1, data = complete_data, family = "binomial")
+summary(model.base)
+
+#Variations on model for preterm
+step.model.base <- step(model.base)
+summary(step.model.base)
+
+```
+
+## Model
+
+We compare this result with Bayesian Model Averaging.
+```{r}
+bas.model.base <- bas.glm(preterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
+summary(bas.model.base)
+image(bas.model.base, rotate = F)
+```
+
+## Model
+
+When we regress "early preterm" through logistic regression, we find only totalbcp and race significant. We compare this with BAS, where we find that only race shows up substantially often in simulated data sets.
+```{r}
+#Models for early preterm
+model.base.early <- glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = "binomial")
+
+bas.model.base.early <- bas.glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
+image(bas.model.base.early)
+```
+ 
+## Model
+
+In comparing results based on different definitions of preterm birth, we find that it is likely the case the DDE (and to a lesser extent, PCB) are associated with early birth. However, in the more extreme cases, where gestational age is less than 34 years, there are likely other factors not represented in the data that account for this difference.
+
+## Conclusion
+
+
+- Partial correlation amongst _dde_ and _pcb_ were analyzed through the following procedure: 
+  - _dde_ and _pcb_ were regressed onto the other predictors first to remove any linear dependence.
+  - The residuals from the model were then extracted and yielded a significant correlation $\rho \approx 0.30$.
+  - This limits any causual interpretation of the effects of _dde_ and _pcb_ on preterm births.
+  - Non-linear dependence was also explored using a support vector machine and produced similiar results.
+
+- Both models indicated 
+
+
+
+
