@@ -138,7 +138,7 @@ cowplot::plot_grid(p3, p4, rel_widths = c(1,1.5))
 We first define "preterm" as gestational age less than 37 months, and compare it to "early preterm," defined as  gestational age less than 34 months.
 
 We use logistic regression to regress preterm against all other variables, and find that dde, totalpcb, triglycerides, race, and center 37 are statistically significant
-```{r}
+```{r, cache=TRUE}
 require(dplyr)
 require(BAS)
 data = readRDS("Longnecker.rds")
@@ -174,7 +174,7 @@ summary(step.model.base)
 ## Model
 
 We compare this result with Bayesian Model Averaging.
-```{r}
+```{r, cache=TRUE}
 bas.model.base <- bas.glm(preterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
 summary(bas.model.base)
 image(bas.model.base, rotate = F)
@@ -183,7 +183,7 @@ image(bas.model.base, rotate = F)
 ## Model
 
 When we regress "early preterm" through logistic regression, we find only totalbcp and race significant. We compare this with BAS, where we find that only race shows up substantially often in simulated data sets.
-```{r}
+```{r, cache=TRUE}
 #Models for early preterm
 model.base.early <- glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = "binomial")
 
