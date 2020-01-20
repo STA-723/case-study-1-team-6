@@ -42,6 +42,40 @@ Imputation
 
 Model
 ========================================================
+```{r}
+require(dplyr)
+data = readRDS("Longnecker.rds")
+
+data = data %>% 
+  select(-albumin) %>% 
+  filter(gestational_age < 60)
+
+complete_data = data[complete.cases(data), ]
+complete_data <- mutate(complete_data, latepreterm =  case_when(
+  gestational_age<=37 ~ 1, 
+  gestational_age>37 ~ 0
+), earlypreterm = case_when(
+  gestational_age<=34 ~ 1, 
+  gestational_age>34 ~ 0
+), totalpcb = pcb_028 + pcb_052 + pcb_074 + pcb_105 + pcb_118 + pcb_153 + pcb_170 + pcb_138 + pcb_180 +pcb_194 +pcb_203, 
+  race = factor(ifelse(race=="white", "white", "other")),
+  center = factor(center),
+  smoking_status = factor(ifelse(smoking_status, "smoking", "non-smoking"))
+)
+
+model.late <- glm(latepreterm~ race:(dde + totalpcb) + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center - 1, data = complete_data, family = "binomial")
+summary(model.late)
+
+model.late <- glm(latepreterm ~ race:totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center - 1, data = complete_data, family = "binomial")
+summary(model.late)
+
+summary(anova.glm( model.late.no.dde, model.late))
+
+model.late.no.dde <- glm(latepreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = "binomial")
+summary(model.late)
+
+```
+
 
 
 
