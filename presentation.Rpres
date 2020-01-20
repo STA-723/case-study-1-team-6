@@ -118,9 +118,13 @@ mean(data$earlybirth)
 Conclusion
 ========================================================
 
-* Multicolinearity amongst the predictors is a poential issue with the analysis
-  * 
+* Partial correlation amongst _dde_ and _pcb_ were analyzed through the following procedure: 
+  * _dde_ and _pcb_ were regressed onto the other predictors first to remove any linear dependence.
+  * The residuals from the model were then extracted and yielded a significant correlation $\rho \approx 0.30$.
+  * This limits any causual interpretation of the effects of _dde_ and _pcb_ on preterm births.
+  * Non-linear dependence was also explored using a support vector machine and produced similiar results.
 
+* Both models indicated 
 
 
 
