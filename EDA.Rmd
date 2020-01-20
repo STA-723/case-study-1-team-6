@@ -285,6 +285,20 @@ summary(out)
 ```
 
 
+```{r}
+plot(complete_data[,c("gestational_age", "maternal_age", "score_income", "score_occupation", "score_education", "dde", "PCB_summary", "triglycerides", "cholesterol")], axes=F)
+
+cor.im(complete_data[,c("gestational_age", "maternal_age", "score_income", "score_occupation", "score_education", "dde", "PCB_summary", "triglycerides", "cholesterol")])
+```
+
+
+
+
+
+
+
+
+
 
 # Instructions
 
