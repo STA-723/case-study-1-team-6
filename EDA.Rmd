@@ -1,0 +1,332 @@
+---
+title: "Exploratory Data Analysis"
+output:
+  html_document:
+    code_folding: hide
+    df_print: paged
+    theme: flatly
+    toc: true
+    number_sections: false
+    toc_depth: 2
+    toc_float: 
+      collapsed: false
+---
+
+```{r, message=FALSE}
+source("prettyplot.R")
+library(tidyverse)
+library(cowplot)
+```
+
+This dataset from the National Collaborative Perinatal Project (CPP) relates gestational age to chemical exposure (DDE and PCBs) and other factors in 2380 pregnant women. The goal is to assess how exposure to DDE and PCBs impact the risk of preterm birth.
+
+```{r}
+data = readRDS("Longnecker.rds")
+head(data)
+```
+
+A preliminary look at the data shows that the variable albumin contains mostly NA values, and I therefore remove it.
+
+```{r}
+data = data %>% 
+  select(-albumin) %>% 
+  filter(gestational_age < 60)
+```
+
+Otherwise, 22% of the rows contain at least one NA value. None of the response variable `gestational_age` is NA. We define the variable `complete_data` containing only the rows without any missing values.
+
+```{r}
+any(is.na(data$gestational_age))
+mean(!complete.cases(data)) %>% round(2)
+
+complete_data = data[complete.cases(data), ]
+```
+
+## Gestational age
+
+We now look more closely at the measured gestational age in women enrolled in the study.
+
+Only 15% have prematurely delivered, and 4% have delivered before 34 weeks (which is likely to lead to medical complications [REFERENCE NEEDED]).
+
+```{r}
+mean(data$gestational_age < 37) %>% round(2)
+mean(data$gestational_age < 34) %>% round(2)
+
+hist(data$gestational_age, xlab="gestational age")
+```
+
+We also see higher preterm risks among non-white women and smokers.
+
+
+```{r}
+data %>% 
+  mutate(smoking_status = ifelse(smoking_status, "smoking", "non-smoking")) %>% 
+  group_by(race, smoking_status) %>% 
+  summarise(preterm_risk = mean(1*(gestational_age < 37))) %>% 
+  ggplot(aes(weight=preterm_risk, x=race, fill=smoking_status)) +
+  geom_bar() +
+  ylab("Risk of preterm birth") +
+  theme_minimal() +
+  facet_grid(cols=vars(smoking_status))
+```
+
+We don't see the same effect for very preterm births.
+
+```{r}
+data %>% 
+  mutate(smoking_status = ifelse(smoking_status, "smoking", "non-smoking")) %>% 
+  group_by(race, smoking_status) %>% 
+  summarise(preterm_risk = mean(1*(gestational_age < 34))) %>% 
+  ggplot(aes(weight=preterm_risk, x=race, fill=smoking_status)) +
+  geom_bar() +
+  ylab("Risk of preterm birth") +
+  theme_minimal() +
+  facet_grid(cols=vars(smoking_status))
+```
+
+We can additionally look at the distribution of gestational ages amond these groups. There seems to be a slight difference in late preterm births (between 34 and 37 weeks), but otherwise there is not much difference.
+
+
+```{r}
+data %>% 
+  mutate(smoking_status = ifelse(smoking_status, "smoking", "non-smoking")) %>% 
+  group_by(race, smoking_status) %>% 
+  ggplot(aes(x=gestational_age, color=race, linetype=smoking_status)) +
+  geom_density() +
+  theme_minimal()
+```
+
+```{r}
+dat2 = data %>% 
+  filter(race=="white")
+
+limits = c(-Inf, quantile(dat2$dde, c(0.2, 0.4, 0.6, 0.8)), Inf)
+
+dat2 %>% 
+  mutate(dde_cut = cut(dde, limits), smoking_status = ifelse(smoking_status, "smoking", "non-smoking")) %>% 
+  group_by(race, smoking_status) %>% 
+  ggplot(aes(x=gestational_age, color=dde_cut)) +
+  geom_density(bw=1) +
+  theme_minimal() +
+  ggtitle("White women") +
+  facet_wrap(vars(smoking_status))
+
+```
+
+
+Correlation between dde exposure and scores
+
+```{r}
+
+dat2 = complete_data %>% 
+  filter(race=="black", smoking_status==1)
+cor.im(dat2[, c("dde", "score_education", "score_income", "score_occupation")])
+
+
+plot(dat2[, c("dde", "score_education", "score_income", "score_occupation")], axes=F)
+
+```
+
+Gestational distribution by center
+
+```{r}
+dat2 = data %>% 
+  filter(race=="white")
+
+limits = c(-Inf, quantile(dat2$dde, c(0.2, 0.4, 0.6, 0.8)), Inf)
+
+dat2 %>% 
+  mutate(dde_cut = cut(dde, limits), smoking_status = ifelse(smoking_status, "smoking", "non-smoking")) %>% 
+  group_by(race, smoking_status) %>% 
+  ggplot(aes(x=gestational_age, color=factor(center))) +
+  geom_density(bw=1) +
+  theme_minimal() +
+  ggtitle("White women") +
+  facet_wrap(vars(smoking_status))
+```
+
+
+## DDE 
+
+```{r}
+dat2 = data %>% 
+  filter(race=="white")
+
+limits = c(-Inf, quantile(dat2$dde, c(0.2, 0.4, 0.6, 0.8)), Inf)
+
+dat2 %>% 
+  mutate(dde_cut = cut(dde, limits), smoking_status = ifelse(smoking_status, "smoking", "non-smoking")) %>% 
+  ggplot(aes(x=dde_cut, y=gestational_age, fill=race)) +
+  geom_violin() +
+  theme_minimal() +
+  facet_wrap(vars(smoking_status))
+```
+
+
+Preterm risk with DDE
+
+Note: We see an effect on late preterms, but maybe not elsewhere...
+
+```{r}
+limits = c(-Inf, quantile(data$dde, c(0.2, 0.4, 0.6, 0.8)), Inf)
+
+data %>% 
+  mutate(dde_cut = cut(data$dde, limits), smoking_status = ifelse(smoking_status, "smoking", "non-smoking")) %>% 
+  mutate(late_preterm = gestational_age < 37 & 34 <= gestational_age,
+         very_preterm = gestational_age < 34) %>% 
+  group_by(dde_cut, race) %>% 
+  summarise(late_risk = mean(late_preterm),
+            very_risk = mean(very_preterm)) %>% 
+  ggplot(aes(x=dde_cut, y=late_risk, color=race, group=race)) + 
+  geom_line() +
+  geom_line(aes(x=dde_cut, y=very_risk, color=race, group=race), linetype=2) +
+  ylab("Preterm risk") +
+  theme_minimal()
+```
+
+With error bars for the estimated risk:
+
+```{r}
+limits = c(-Inf, quantile(data$dde, c(0.2, 0.4, 0.6, 0.8)), Inf)
+
+prop_CI <- function(dat, level=0.95) {
+  prop.test(sum(dat), length(dat), conf.level = level)$conf.int
+}
+
+data %>% 
+  mutate(dde_cut = cut(data$dde, limits), smoking_status = ifelse(smoking_status, "smoking", "non-smoking")) %>% 
+  mutate(late_preterm = gestational_age < 37,
+         very_preterm = gestational_age < 34) %>% 
+  group_by(dde_cut, race) %>% 
+  summarise(late_risk = mean(late_preterm),
+            ymin = prop_CI(late_preterm)[1],
+            ymax = prop_CI(late_preterm)[2]) %>% 
+  ggplot(aes(x=dde_cut, y=late_risk, color=race, group=race)) + 
+  geom_line(position=position_dodge(0.2)) +
+  geom_pointrange(aes(ymin=ymin, ymax=ymax), position=position_dodge(0.2)) +
+  ylab("Preterm risk (< 37 weeks)") +
+  theme_minimal()
+```
+
+```{r}
+limits = c(-Inf, quantile(data$dde, c(0.2, 0.4, 0.6, 0.8)), Inf)
+
+prop_CI <- function(dat, level=0.95) {
+  prop.test(sum(dat), length(dat), conf.level = level)$conf.int
+}
+
+data %>% 
+  mutate(dde_cut = cut(data$dde, limits), smoking_status = ifelse(smoking_status, "smoking", "non-smoking")) %>% 
+  mutate(late_preterm = gestational_age < 34) %>% 
+  group_by(dde_cut, race) %>% 
+  summarise(late_risk = mean(late_preterm),
+            ymin = prop_CI(late_preterm)[1],
+            ymax = prop_CI(late_preterm)[2]) %>% 
+  ggplot(aes(x=dde_cut, y=late_risk, color=race, group=race)) + 
+  geom_line(position=position_dodge(0.2)) +
+  geom_pointrange(aes(ymin=ymin, ymax=ymax), position=position_dodge(0.2)) +
+  ylab("Preterm risk (< 34 weeks)") +
+  theme_minimal()
+```
+
+For white woman and filtering out center 15.
+
+```{r}
+dat2 = data %>% 
+  filter(center!=15, race=="white")
+
+limits = c(-Inf, quantile(dat2$dde, c(0.2, 0.4, 0.6, 0.8)), Inf)
+
+prop_CI <- function(dat, level=0.95) {
+  prop.test(sum(dat), length(dat), conf.level = level)$conf.int
+}
+
+dat2 %>% 
+  mutate(dde_cut = cut(dat2$dde, limits), smoking_status = ifelse(smoking_status, "smoking", "non-smoking")) %>% 
+  mutate(late_preterm = gestational_age < 37) %>% 
+  group_by(dde_cut, race) %>% 
+  summarise(late_risk = mean(late_preterm),
+            ymin = prop_CI(late_preterm)[1],
+            ymax = prop_CI(late_preterm)[2]) %>% 
+  ggplot(aes(x=dde_cut, y=late_risk, color=race, group=race)) + 
+  geom_line(position=position_dodge(0.2)) +
+  geom_pointrange(aes(ymin=ymin, ymax=ymax), position=position_dodge(0.2)) +
+  ylab("Preterm risk (< 37 weeks)") +
+  theme_minimal()
+```
+
+
+
+
+```{r}
+data %>% 
+  filter(race=="white", smoking_status==1) %>% 
+  mutate(PCB_sum = pcb_028 + pcb_052 + pcb_074 + pcb_105 + pcb_118 + pcb_138 + pcb_153 + pcb_170 + pcb_180 + pcb_194 + pcb_203) %>% 
+  select(gestational_age, maternal_age, dde, PCB_sum, score_education) %>% 
+  plot(alpha=0.5, axes=F)
+```
+
+
+
+```{r}
+PCB_vars = c("pcb_028", "pcb_052", "pcb_074", "pcb_105", "pcb_118", "pcb_153", "pcb_170", "pcb_138", "pcb_180", "pcb_194", "pcb_203")
+
+non_PCB_vars = colnames(data)[!colnames(data) %in% PCB_vars]
+
+cor.im(data[!is.na(rowSums(data[, PCB_vars])), PCB_vars])
+
+```
+
+```{r}
+dat = data %>% mutate(premature = ifelse(gestational_age < 34, 1, 0))
+out = glm(premature ~ (log(dde) + score_education + score_income + score_occupation + log(maternal_age) + pcb_028 + pcb_052 + pcb_074 + pcb_105 + cholesterol + triglycerides)*smoking_status, family=binomial, data=dat)
+
+summary(out)
+```
+
+
+```{r}
+plot(complete_data[,c("gestational_age", "maternal_age", "score_income", "score_occupation", "score_education", "dde", "PCB_summary", "triglycerides", "cholesterol")], axes=F)
+
+cor.im(complete_data[,c("gestational_age", "maternal_age", "score_income", "score_occupation", "score_education", "dde", "PCB_summary", "triglycerides", "cholesterol")])
+```
+
+
+
+
+
+
+
+
+
+
+# Instructions
+
+Presentations:
+  5 minutes 
+  Don't give much background
+
+Writeup:
+
+Accessible to an epidomiologist
+3 pages (not counting tables and figures)
+
+1. Intro
+  -> Goals
+
+2. Materials and Methods
+  -> Analysis approach
+
+3. Results
+  -> Clear and concise, with a figure or two
+
+4. Discussion
+  -> 
+
+Appendix
+  -> Technical details / code / whatever
+
+
+
+
+
