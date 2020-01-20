@@ -1,8 +1,10 @@
+
 presentation
 ========================================================
-author: 
+author: Olivier Binette, Brian Kundinger and Joe Mathews
 date: 
 autosize: true
+font-family: 'Helvetica'
 
 First Slide
 ========================================================
@@ -29,6 +31,10 @@ plot(cars)
 
 EDA
 ========================================================
+
+
+
+
 
 Imputation
 ========================================================
