@@ -5,10 +5,11 @@ author: Olivier Binette, Brian Kundinger and Joe Mathews
 date: January 21, 2020
 autosize: true
 transition: linear
-css: rpres.css
 
 Longnecker data and the Collaborative Perinatal Project
 ======================================================== 
+
+<div style="margin-top:100px"></div>
 
 
 - Data from the National Collaborative Perinatal Project (CPP) 
@@ -17,9 +18,87 @@ Longnecker data and the Collaborative Perinatal Project
 ## Goal:
 - Assess how exposure to DDE and PCBs impact the risk of preterm birth, defined as delivery before 37 weeks.
 
-Overview of the data
+
+Data cleaning and transformations
 ======================================================== 
 
+<div style="margin-top:100px"></div>
+
+- Removed pregnancies over 55 weeks
+- Dropped albumin variable (93% missing values)
+- Combined "other" (n=136) and "black" in a single class of size 1336.
+- Summarized PCBs by summation.
+- Observation \# 1857 has missing values; we removed it.
+
+**Note:**
+- Still 22% missing values in the score_* variables.
+
+A look at the data
+========================================================
+
+```{r, echo=FALSE, message=FALSE, include=FALSE}
+library(tidyverse)
+library(cowplot)
+source("prettyplot.R")
+
+data = readRDS("Longnecker.rds") %>% 
+  dplyr::select(-albumin) %>% 
+  filter(gestational_age < 55) %>% 
+  mutate(smoking_status = factor(ifelse(smoking_status, "smoking", "non-smoking")),
+         preterm = gestational_age < 37,
+         term_class = factor(case_when(gestational_age < 34 ~ "very_preterm",
+                                       gestational_age < 37 ~ "late_preterm",
+                                       TRUE ~ "non_preterm"), 
+                             levels=c("very_preterm", "late_preterm", "non_preterm")),
+         race = factor(ifelse(race=="white", "white", "other")),
+         center = factor(center),
+         n_col_NA = rowSums(cbind(is.na(score_education), 
+                                  is.na(score_income), 
+                                  is.na(score_occupation)))
+         )
+
+PCB_vars = c("pcb_028", "pcb_052", "pcb_074", "pcb_105", "pcb_118", "pcb_153", "pcb_170", "pcb_138", "pcb_180", "pcb_194", "pcb_203")
+
+# Define PCB_sum
+data = data %>% 
+  mutate(PCB_sum = rowSums(data[,PCB_vars]))
+
+# Removing observation with NA PCBs
+data = data[-1857, ]
+
+PCBs = scale(as.matrix(data[, PCB_vars]), scale=T)
+
+PCB_summary = PCBs %*% princomp(PCBs)$loadings[,1, drop=F]
+data = data %>% mutate(PCB_summary = PCB_summary)
+
+# Remove NA values
+complete_data = data %>% filter(n_col_NA == 0)
+
+# Proportion of NA in the albumin variable.
+mean(is.na(readRDS("Longnecker.rds")$albumin)) %>% round(2)
+
+# Proportion of NA values among score_income, score_education and score_occupation.
+mean(is.na(
+  data %>%
+    dplyr::select(score_income, score_education, score_occupation)
+  )) %>% round(2)
+
+# Proportion of NA values elsewhere
+mean(is.na(
+  data %>%
+    dplyr::select(-score_income, -score_education, -score_occupation)
+  ))
+```
+
+```{r, echo=FALSE, fig.width=8, fig.height=8}
+ggplot(data, aes(x = gestational_age, color = race)) +
+  geom_density(aes(linetype=smoking_status), bw=0.8) +
+  theme_minimal() +
+  theme(text = element_text(size=16), 
+      legend.position = "right",
+      legend.key.size = unit(0.85, "cm"),
+      plot.title = element_text(hjust = 0))
+```
 
 
 Slide With Code
@@ -49,40 +128,6 @@ Imputation
 
 Model
 ========================================================
-```{r}
-require(dplyr)
-data = readRDS("Longnecker.rds")
-
-data = data %>% 
-  select(-albumin) %>% 
-  filter(gestational_age < 60)
-
-complete_data = data[complete.cases(data), ]
-complete_data <- mutate(complete_data, latepreterm =  case_when(
-  gestational_age<=37 ~ 1, 
-  gestational_age>37 ~ 0
-), earlypreterm = case_when(
-  gestational_age<=34 ~ 1, 
-  gestational_age>34 ~ 0
-), totalpcb = pcb_028 + pcb_052 + pcb_074 + pcb_105 + pcb_118 + pcb_153 + pcb_170 + pcb_138 + pcb_180 +pcb_194 +pcb_203, 
-  race = factor(ifelse(race=="white", "white", "other")),
-  center = factor(center),
-  smoking_status = factor(ifelse(smoking_status, "smoking", "non-smoking"))
-)
-
-model.late <- glm(latepreterm~ race:(dde + totalpcb) + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center - 1, data = complete_data, family = "binomial")
-summary(model.late)
-
-model.late <- glm(latepreterm ~ race:totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center - 1, data = complete_data, family = "binomial")
-summary(model.late)
-
-summary(anova.glm( model.late.no.dde, model.late))
-
-model.late.no.dde <- glm(latepreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = "binomial")
-summary(model.late)
-
-```
-
 
 
 
