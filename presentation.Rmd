@@ -1,35 +1,94 @@
 ---
-title: "Presentation"
+title: "Effect of chemical exposure on preterm risk"
 output: 
-  ioslides_presentation:
-    transition: faster
+  beamer_presentation
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+## Longnecker data and the Collaborative Perinatal Project
+
+- Data from the National Collaborative Perinatal Project (CPP) 
+- Relates gestational age to chemical exposure (DDE and PCBs) and other factors in 2380 pregnant women. 
+
+### Goal:
+
+- Assess how exposure to DDE and PCBs impact the risk of preterm birth, defined as delivery before 37 weeks.
+
+
+## Data cleaning and transformations
+
+- Removed pregnancies over 55 weeks
+- Dropped albumin variable (93% missing values)
+- Combined "other" (n=136) and "black" in a single class of size 1336.
+- Summarized PCBs by summation.
+- Observation \# 1857 has missing values; we removed it.
+
+**Note:** Still 22% missing values in the score_* variables.
+
+## A look at the data
+
+```{r, echo=FALSE, message=FALSE, include=FALSE}
+library(tidyverse)
+library(cowplot)
+source("prettyplot.R")
+
+data = readRDS("Longnecker.rds") %>% 
+  dplyr::select(-albumin) %>% 
+  filter(gestational_age < 55) %>% 
+  mutate(smoking_status = factor(ifelse(smoking_status, "smoking", "non-smoking")),
+         preterm = gestational_age < 37,
+         term_class = factor(case_when(gestational_age < 34 ~ "very_preterm",
+                                       gestational_age < 37 ~ "late_preterm",
+                                       TRUE ~ "non_preterm"), 
+                             levels=c("very_preterm", "late_preterm", "non_preterm")),
+         race = factor(ifelse(race=="white", "white", "other")),
+         center = factor(center),
+         n_col_NA = rowSums(cbind(is.na(score_education), 
+                                  is.na(score_income), 
+                                  is.na(score_occupation)))
+         )
+
+PCB_vars = c("pcb_028", "pcb_052", "pcb_074", "pcb_105", "pcb_118", "pcb_153", "pcb_170", "pcb_138", "pcb_180", "pcb_194", "pcb_203")
+
+# Define PCB_sum
+data = data %>% 
+  mutate(PCB_sum = rowSums(data[,PCB_vars]))
+
+# Removing observation with NA PCBs
+data = data[-1857, ]
+
+PCBs = scale(as.matrix(data[, PCB_vars]), scale=T)
+
+PCB_summary = PCBs %*% princomp(PCBs)$loadings[,1, drop=F]
+data = data %>% mutate(PCB_summary = PCB_summary)
+
+# Remove NA values
+complete_data = data %>% filter(n_col_NA == 0)
+
+# Proportion of NA in the albumin variable.
+mean(is.na(readRDS("Longnecker.rds")$albumin)) %>% round(2)
+
+# Proportion of NA values among score_income, score_education and score_occupation.
+mean(is.na(
+  data %>%
+    dplyr::select(score_income, score_education, score_occupation)
+  )) %>% round(2)
+
+# Proportion of NA values elsewhere
+mean(is.na(
+  data %>%
+    dplyr::select(-score_income, -score_education, -score_occupation)
+  ))
 ```
 
-## R Markdown
-
-This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
-
-## Slide with Bullets
-
-- Bullet 1
-- Bullet 2
-- Bullet 3
-
-## Slide with R Output
-
-```{r cars, echo = TRUE}
-summary(cars)
+```{r, echo=FALSE}
+ggplot(data, aes(x = gestational_age, color = race)) +
+  geom_density(aes(linetype=smoking_status), bw=0.8, size=1.5) +
+  theme_minimal() +
+  theme(text = element_text(size=16), 
+      legend.position = "right",
+      legend.key.size = unit(0.85, "cm"),
+      plot.title = element_text(hjust = 0))
 ```
 
-## Slide with Plot
 
-```{r pressure}
-plot(pressure)
-```
-
+## Model
