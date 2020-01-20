@@ -13,7 +13,7 @@ Longnecker data and the Collaborative Perinatal Project
 
 
 - Data from the National Collaborative Perinatal Project (CPP) 
-- Relates gestational age to chemical exposure (DDE and PCBs) and other factors in 2380 pregnant women.
+- Relates gestational age to chemical exposure (DDE and PCBs) and other factors in 2380 pregnant women. 
 
 ## Goal:
 - Assess how exposure to DDE and PCBs impact the risk of preterm birth, defined as delivery before 37 weeks.
@@ -128,6 +128,66 @@ Imputation
 
 Model
 ========================================================
+=======
+```{r}
+require(dplyr)
+require(BAS)
+data = readRDS("Longnecker.rds")
+
+data = data %>% 
+  select(-albumin) %>% 
+  filter(gestational_age < 60)
+  mutate
+
+complete_data = data[complete.cases(data), ]
+complete_data <- mutate(complete_data, preterm =  case_when(
+  gestational_age<37 ~ 1, 
+  gestational_age>=37 ~ 0
+), earlypreterm = case_when(
+  gestational_age<34 ~ 1, 
+  gestational_age>=34 ~ 0
+), totalpcb = pcb_028 + pcb_052 + pcb_074 + pcb_105 + pcb_118 + pcb_153 + pcb_170 + pcb_138 + pcb_180 +pcb_194 +pcb_203, 
+  race = factor(ifelse(race=="white", "white", "other")),
+  center = factor(center),
+  smoking_status = factor(ifelse(smoking_status, "smoking", "non-smoking"))
+)
+
+#Models for preterm
+model.base <- glm(preterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = "binomial")
+summary(model.base)
+
+model.interactions <- glm(preterm~ race:(dde + totalpcb) + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center - 1, data = complete_data, family = "binomial")
+summary(model.interactions)
+
+model.interactions.no.dde <- glm(preterm~ race:( totalpcb) + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center - 1, data = complete_data, family = "binomial")
+
+anova(model.interactions, model.base, test = "Chisq")
+
+#Variations on model for preterm
+step.model.base <- step(model.base)
+summary(step.model.base)
+
+bas.model.base <- bas.glm(preterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
+summary(bas.model.base)
+
+#Models for early preterm
+model.base.early <- glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = "binomial")
+summary(model.base.early)
+
+bas.model.base.early <- bas.glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
+summary(bas.model.base.early)
+
+
+#Interactions with center
+model.base.center <- glm(preterm ~ dde:center + totalpcb:center + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center - 1, data = complete_data, family = "binomial")
+summary(model.base.center)
+
+model.base.center.early <- glm(earlypreterm ~ dde:center + totalpcb:center + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol+ center - 1, data = complete_data, family = "binomial")
+summary(model.base.center.early)
+
+mean(data$earlybirth)
+
+```
 
 
 
