@@ -137,9 +137,11 @@ Imputation
     * Apply a non-linear model to estimate missing values. 
 
 
-Model
-========================================================
-=======
+## Model
+
+We first define "preterm" as gestational age less than 37 months, and compare it to "early preterm," defined as  gestational age less than 34 months.
+
+We use logistic regression to regress preterm against all other variables, and find that dde, totalpcb, triglycerides, race, and center 37 are statistically significant
 ```{r}
 require(dplyr)
 require(BAS)
@@ -164,43 +166,38 @@ complete_data <- mutate(complete_data, preterm =  case_when(
 )
 
 #Models for preterm
-model.base <- glm(preterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = "binomial")
+model.base <- glm(preterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center-1, data = complete_data, family = "binomial")
 summary(model.base)
-
-model.interactions <- glm(preterm~ race:(dde + totalpcb) + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center - 1, data = complete_data, family = "binomial")
-summary(model.interactions)
-
-model.interactions.no.dde <- glm(preterm~ race:( totalpcb) + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center - 1, data = complete_data, family = "binomial")
-
-anova(model.interactions, model.base, test = "Chisq")
 
 #Variations on model for preterm
 step.model.base <- step(model.base)
 summary(step.model.base)
 
-bas.model.base <- bas.glm(preterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
-summary(bas.model.base)
-
-#Models for early preterm
-model.base.early <- glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = "binomial")
-summary(model.base.early)
-
-bas.model.base.early <- bas.glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
-summary(bas.model.base.early)
-
-
-#Interactions with center
-model.base.center <- glm(preterm ~ dde:center + totalpcb:center + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center - 1, data = complete_data, family = "binomial")
-summary(model.base.center)
-
-model.base.center.early <- glm(earlypreterm ~ dde:center + totalpcb:center + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol+ center - 1, data = complete_data, family = "binomial")
-summary(model.base.center.early)
-
-mean(data$earlybirth)
-
 ```
 
+Model
+========================================================
+We compare this result with Bayesian Model Averaging.
+```{r}
+bas.model.base <- bas.glm(preterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
+summary(bas.model.base)
+image(bas.model.base, rotate = F)
+```
 
+Model
+========================================================
+When we regress "early preterm" through logistic regression, we find only totalbcp and race significant. We compare this with BAS, where we find that only race shows up substantially often in simulated data sets.
+```{r}
+#Models for early preterm
+model.base.early <- glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = "binomial")
+
+bas.model.base.early <- bas.glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
+image(bas.model.base.early)
+```
+
+Model
+========================================================
+In comparing results based on different definitions of preterm birth, we find that it is likely the case the DDE (and to a lesser extent, PCB) are associated with early birth. However, in the more extreme cases, where gestational age is less than 34 years, there are likely other factors not represented in the data that account for this difference. 
 
 
 Conclusion
