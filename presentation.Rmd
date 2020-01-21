@@ -230,27 +230,15 @@ In comparing results based on different definitions of preterm birth, we find th
 
 BAS and GLM produced different results for PCB in each case. We believe this is due to low group size. (74/1853 women had births before 34 months) 
 
-## Imputation
-
-- Approximately 78% of the observations were complete cases. Most incomplete cases came from the "score" variables.
-
-- A standard Bayesian approach to data imputation was taken for each score variable:
-  - The observed score variables were regressed onto the other predictors.
-  - Missing values were treated as model parameters and were estimated using their respective posterior mean.
-- A few potential problems with this approach:
-  - The missing at random (MAR) assumption may be inappropriate.
-  - Treating each score variable as a linear function of the other predictors is hard to justify.
-  - Multicollinearity amongst the predictors (e.g., _cholesterol_ and _triglycerides_).
-
 ## Conclusion
 
 - Both models indicated _dde_ may play a role in preterm risk. In addition, _pcb_ appears to play at most a minor role in preterm risk.
 
 - Partial correlation amongst _dde_ and _pcb_ were analyzed through the following procedure:
-- _dde_ and _pcb_ were regressed onto the other predictors first to remove any linear dependence.
-- The residuals from the model were then extracted and yielded a significant correlation $\rho \approx 0.30$.
-- This limits any causal interpretation of the effects of _dde_ and _pcb_ on preterm births.
-- Non-linear dependence was also explored using a support vector machine and produced similar results.
+  - _dde_ and _pcb_ were regressed onto the other predictors first to remove any linear dependence.
+  - The residuals from the model were then extracted and yielded a significant correlation $\rho \approx 0.30$.
+  - This limits any causal interpretation of the effects of _dde_ and _pcb_ on preterm births.
+  - Non-linear dependence was also explored using a support vector machine and produced similar results.
 
 ## Improvements
 
