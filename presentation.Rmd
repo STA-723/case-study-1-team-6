@@ -30,6 +30,8 @@ output:
 library(tidyverse)
 library(cowplot)
 source("prettyplot.R")
+require(dplyr)
+require(BAS)
 
 data = readRDS("Longnecker.rds") %>% 
   dplyr::select(-albumin) %>% 
@@ -185,16 +187,13 @@ cowplot::plot_grid(p1, p2, rel_widths=c(1.2,1.5))
 
 We first define "preterm" as gestational age less than 37 months, and compare it to "early preterm," defined as  gestational age less than 34 months.
 
-We use logistic regression to regress preterm against all other variables, and find that dde, totalpcb, triglycerides, race, and center 37 are statistically significant
-```{r, cache=TRUE}
-require(dplyr)
-require(BAS)
+Since the response is a binary, We use logistic regression to regress preterm against all other variables. We find that dde, totalpcb, triglycerides, race, and center 37 are statistically significant
+```{r, echo=FALSE, warning=FALSE, fig.height=5}
 data = readRDS("Longnecker.rds")
 
 data = data %>%
  select(-albumin) %>%
  filter(gestational_age < 60)
- mutate
 
 complete_data = data[complete.cases(data), ]
 complete_data <- mutate(complete_data, preterm = case_when(
@@ -211,27 +210,21 @@ complete_data <- mutate(complete_data, preterm = case_when(
 
 #Models for preterm
 model.base <- glm(preterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center-1, data = complete_data, family = "binomial")
-summary(model.base)
-
-#Variations on model for preterm
-step.model.base <- step(model.base)
-summary(step.model.base)
 
 ```
 
 ## Model
 
 We compare this result with Bayesian Model Averaging.
-```{r, cache=TRUE}
+```{r, echo=FALSE, warning=FALSE, fig.height=5, cache= TRUE}
 bas.model.base <- bas.glm(preterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
-summary(bas.model.base)
-image(bas.model.base, rotate = F)
+image(bas.model.base)
 ```
 
 ## Model
 
 When we regress "early preterm" through logistic regression, we find only totalbcp and race significant. We compare this with BAS, where we find that only race shows up substantially often in simulated data sets.
-```{r, cache=TRUE}
+```{r, echo=FALSE, warning=FALSE, fig.height=5, cache= TRUE}
 #Models for early preterm
 model.base.early <- glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = "binomial")
 
@@ -241,7 +234,9 @@ image(bas.model.base.early)
  
 ## Model
 
-In comparing results based on different definitions of preterm birth, we find that it is likely the case the DDE (and to a lesser extent, PCB) are associated with early birth. However, in the more extreme cases, where gestational age is less than 34 years, there are likely other factors not represented in the data that account for this difference.
+In comparing results based on different definitions of preterm birth, we find that it is likely the case that DDE (and to a lesser extent, PCB) are associated with early birth. However, in the more extreme cases, where gestational age is less than 34 years, there are likely other factors not represented in the data that account for this difference.
+
+BAS and GLM produced different results for PCB in each case. We believe this is due to low group size. (74/1853 women had births before 34 months) 
 
 ## Conclusion
 
