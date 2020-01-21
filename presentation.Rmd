@@ -177,9 +177,9 @@ cowplot::plot_grid(p1, p2, rel_widths=c(1.2,1.5))
 
 ## Model
 
-We first define "preterm" as gestational age less than 37 months, and compare it to "early preterm," defined as  gestational age less than 34 months.
+We first define "preterm" as gestational age less than 37 months, and compare it to "early preterm," defined as gestational age less than 34 months.
 
-Since the response is a binary, We use logistic regression to regress preterm against all other variables. We find that dde, totalpcb, triglycerides, race, and center 37 are statistically significant
+Since the response is a binary, We use logistic regression to regress preterm against all other variables. We find that dde, totalpcb, triglycerides, race, and center 37 have statistically significant effects.
 ```{r, echo=FALSE, warning=FALSE, fig.height=5}
 data = readRDS("Longnecker.rds")
 
@@ -216,6 +216,7 @@ image(bas.model.base)
 ## Model
 
 When we regress "early preterm" through logistic regression, we find only totalbcp and race significant. We compare this with BAS, where we find that only race shows up substantially often in simulated data sets.
+
 ```{r, echo=FALSE, warning=FALSE, fig.height=5, cache= TRUE}
 #Models for early preterm
 model.base.early <- glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = "binomial")
