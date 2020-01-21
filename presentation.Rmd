@@ -7,7 +7,7 @@ output:
 ## Longnecker data and the Collaborative Perinatal Project
 
 - Data from the National Collaborative Perinatal Project (CPP) 
-- Relates gest  ational age to chemical exposure (DDE and PCBs) and other factors in 2380 pregnant women. 
+- Relates gest  ational age to chemical exposure (DDE and PCBs) and other factors in 2380 pregnant women.
 
 ### Goal:
 
@@ -116,7 +116,55 @@ cowplot::plot_grid(p3, p4, rel_widths = c(1,1.5))
 
 ## A look at the data
 
+```{r, echo=FALSE, warning=FALSE, fig.height=5}
+limits = c(-Inf, quantile(data$dde, c(0.25, 0.5, 0.75)), Inf)
 
+prop_CI <- function(dat, level=0.95) {
+  prop.test(sum(dat), length(dat), conf.level = level)$conf.int
+}
+
+p1 = data %>% 
+  mutate(dde_range = cut(data$dde, limits)) %>% 
+  group_by(dde_range, race) %>% 
+  summarise(late_risk = mean(preterm),
+            ymin = prop_CI(preterm)[1],
+            ymax = prop_CI(preterm)[2]) %>% 
+  ggplot(aes(x=dde_range, y=late_risk, color=race, group=race)) + 
+  geom_line(position=position_dodge(0.2), size=1.2) +
+  geom_pointrange(aes(ymin=ymin, ymax=ymax), position=position_dodge(0.2)) +
+  ylab("Preterm risk (< 37 weeks)") +
+  theme_minimal() +
+  theme(text = element_text(size=16), 
+    legend.position="none",
+    legend.key.size = unit(0.6, "cm"),
+    plot.title = element_text(hjust = 0))
+
+
+limits = c(-Inf, quantile(data$totalpcb, c(0.25, 0.5, 0.75)), Inf)
+
+prop_CI <- function(dat, level=0.95) {
+  prop.test(sum(dat), length(dat), conf.level = level)$conf.int
+}
+
+p2 = data %>% 
+  mutate(PCB_range = cut(data$totalpcb, limits)) %>% 
+  group_by(PCB_range, race) %>% 
+  summarise(late_risk = mean(preterm),
+            ymin = prop_CI(preterm)[1],
+            ymax = prop_CI(preterm)[2]) %>% 
+  ggplot(aes(x=PCB_range, y=late_risk, color=race, group=race)) + 
+  geom_line(position=position_dodge(0.2), size=1.2) +
+  geom_pointrange(aes(ymin=ymin, ymax=ymax), position=position_dodge(0.2)) +
+  ylab("Preterm risk (< 37 weeks)") +
+  theme_minimal() +
+  theme(text = element_text(size=16), 
+    legend.position="right",
+    legend.key.size = unit(0.6, "cm"),
+    plot.title = element_text(hjust = 0))
+
+
+cowplot::plot_grid(p1, p2, rel_widths=c(1.2,1.5))
+```
 
 ## Imputation
 
