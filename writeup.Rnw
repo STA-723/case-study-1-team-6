@@ -301,10 +301,9 @@ cor.test(residuals, complete_data$dde)
 @
 
 \section{Model}
+Although "preterm birth" is strictly defined as a pregnancy of less than 37 weeks, we know that pregnancies at precisely 37 weeks do not necessarily have poor health outcomes. Therefore, we define two binary variables; we assign "preterm" to observations where the gestational age is less than or equal to 37, and "earlypreterm" to those where the gestational age is less than or equal to 34 weeks. Since these are binary variables, we run logistic regression, and compare our findings from the two analysis. 
 
-We first define "preterm" as gestational age less than 37 months, and compare it to "early preterm," defined as  gestational age less than 34 months.
-
-Since the response is a binary, We use logistic regression to regress preterm against all other variables. We find that dde, totalpcb, triglycerides, race, and center 37 are statistically significant
+To control for the baseline effects of social factors like race and socioeconomicstatus and other health metrics like triglyceride and cholesterol levels, we regress "preterm" against all other variables. We find that dde, totalpcb, triglycerides, race, and center 37 are statistically significant. We do the same with "earlypreterm" and find only totalpbc and race to be significant. The tables below provide effect size and pvalues for DDE and PCB, the variables of interest.
 <<>>={r, echo=FALSE, warning=FALSE, fig.height=5}
 data = readRDS("Longnecker.rds")
 
@@ -335,8 +334,9 @@ bas.model.base <- bas.glm(preterm ~ dde + totalpcb + triglycerides + race + scor
 image(bas.model.base)
 @
 
+Since cases classified as preterm and early preterm comprise relatively small porportions of the data, and since we reduced the individual PCB variables into one aggregate totalpcb variable, we check the significance of these variables through Bayesian Model Averaging (BMA). This process works by assigning a prior distribution to the set of possible models, and then uses the observed data set to calculate posterior probabilities for each of the possible models. One advantage of this method is that we obtain a posterior probability for each variable, which serves as a way to quantify undercertainty about each variable's statistical significance. 
 
-When we regress "early preterm" through logistic regression, we find only totalbcp and race significant. We compare this with BAS, where we find that only race shows up substantially often in simulated data sets.
+Using a uniform prior distribution on the set of models, we conduct BMA on the models outlined above. The posterior probabilities of each variable are provided below.
 
 <<>>={r, echo=FALSE, warning=FALSE, fig.height=5, cache= TRUE}
 #Models for early preterm
@@ -346,9 +346,11 @@ bas.model.base.early <- bas.glm(earlypreterm ~ dde + totalpcb + triglycerides + 
 image(bas.model.base.early)
 @
 
-In comparing results based on different definitions of preterm birth, we find that it is likely the case that DDE (and to a lesser extent, PCB) are associated with early birth. However, in the more extreme cases, where gestational age is less than 34 years, there are likely other factors not represented in the data that account for this difference.
+BMA mostly confirms the statstical significances found through logistic regression, but notbaly highlights uncertainty about the explanatory power of PCB in the model. We believe this inconsistency is due to the low number of preterm and earlypreterm births observed in the dataset, and note that further study should be done to asses the statistical significance of PCB. 
 
-BAS and GLM produced different results for PCB in each case. We believe this is due to low group size. (74/1853 women had births before 34 months) 
+
+(SHOULD THIS GO IN CONCLUSION?)
+In comparing results based on different definitions of preterm birth, we find that it is likely the case that DDE (and to a lesser extent, PCB) are associated with early birth. However, in the more extreme cases, where gestational age is less than 34 years, there are likely other factors not represented in the data that account for this difference.
 
 \end{document}
 
