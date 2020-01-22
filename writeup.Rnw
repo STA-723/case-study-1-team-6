@@ -24,6 +24,7 @@
 
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 % Make title.
 \clearpage\maketitle
 \thispagestyle{empty}
@@ -300,7 +301,18 @@ residuals = complete_data$gestational_age - predict(outrf)
 cor.test(residuals, complete_data$dde)
 @
 
+\section*{Methods}
 
+\subsection*{Data Imputation}
+\par    Approximately seventy-nine percent of the data were complete cases. Almost all incomplete cases were due to \emph{NA} responses to the \emph{score income}, \emph{score education}, and \emph{score occupation} variables. To deal with these missing values, we employed a standard Bayesian approach to data imputation. We treat the score variables as independent, identically distributed Normal random variables and fit a linear model using the other predictor variables. That is, we regress the observed values of the score variables onto the other predictor variables and treat missing score values as model parameters that need to be estimated. We then estimated each missing value using the posterior mean of the posterior distribution of the corresponding missing observation. 
+\par There are a few possible problems and improvements with the imputation approach taken above. Importantly, our approach assumes that observed variables in the data set can explain the missing score values. In addition, even if this assumption holds, the data do not suggest that a linear relationship exists between the score variables and remaining predictor variables. One improvement to our approach would be to propagate the uncertainty associated with estimating missing data into the model. For example, this can be done by refitting our model for each simulated missing score value and then averaging the model results. Another approach would be to estimate missing values using a non-linear model. 
+
+\subsection*{Partial Correlation Analysis}
+We analyzed the partial correlation amongst a \emph{pcb} summary variable, \emph{dde}, and \emph{gestational age} (treated as a continuous response) in order to detect the presence of confounding factors. To control for linear dependences, the first approach involved regressing \emph{dde} and the \emph{pcb} summary variable onto the other predictors using a standard linear model. We then computed the correlation between \emph{dde} and the \emph{pcb} summary variable. To account for possible non-linear dependencies, we also applied the same approch but using a support vector machine. In both cases, the estimated partial correlation was near 0.30. In addition, a small negative correlation was found between the residuals and \emph{gestational age}. The multi-colinearity between \emph{dde} and the \emph{pcb} summary variable suggests a presence of a potential confounding factor. Consequently, the small negative correlation between the predictors and response appeared significant, any causal interpretation is quite limited. 
+
+\section*{Conclusion}
+
+\subsection{Model}
 
 \end{document}
 
