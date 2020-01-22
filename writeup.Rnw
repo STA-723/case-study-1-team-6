@@ -314,7 +314,7 @@ We analyzed the partial correlation amongst a \emph{pcb} summary variable, \emph
 \section{Model}
 Although "preterm birth" is strictly defined as a pregnancy of less than 37 weeks, we know that pregnancies at precisely 37 weeks do not necessarily have poor health outcomes. Therefore, we define two binary variables; we assign "preterm" to observations where the gestational age is less than or equal to 37, and "earlypreterm" to those where the gestational age is less than or equal to 34 weeks. Since these are binary variables, we run logistic regression, and compare our findings from the two analysis.
 
-To control for the baseline effects of social factors like race and socioeconomicstatus and other health metrics like triglyceride and cholesterol levels, we regress "preterm" against all other variables. We find that dde, totalpcb, triglycerides, race, and center 37 are statistically significant. We do the same with "earlypreterm" and find only totalpbc and race to be significant. The tables below provide effect size and pvalues for DDE and PCB, the variables of interest.
+To control for the baseline effects of social factors like race and socioeconomic status and other health metrics like triglyceride and cholesterol levels, we regress "preterm" against all other variables. We find that dde, totalpcb, triglycerides, race, and center 37 are statistically significant. We do the same with "earlypreterm" and find only totalpbc and race to be significant. The tables below provide effect size and pvalues for DDE and PCB, the variables of interest.
 <<r, echo=FALSE, warning=FALSE, fig.height=5>>=
 data = readRDS("Longnecker.rds")
 
@@ -357,7 +357,7 @@ bas.model.base.early <- bas.glm(earlypreterm ~ dde + totalpcb + triglycerides + 
 image(bas.model.base.early)
 @
 
-BMA mostly confirms the statstical significances found through logistic regression, but notbaly highlights uncertainty about the explanatory power of PCB in the model. We believe this inconsistency is due to the low number of preterm and earlypreterm births observed in the dataset, and note that further study should be done to asses the statistical significance of PCB. 
+BMA mostly confirms the statstical significances found through logistic regression, but notably highlights uncertainty about the explanatory power of PCB in the model. We believe this inconsistency is due to the low number of preterm and earlypreterm births observed in the dataset, and note that further study should be done to asses the statistical significance of PCB. 
 
 
 (SHOULD THIS GO IN CONCLUSION?)
