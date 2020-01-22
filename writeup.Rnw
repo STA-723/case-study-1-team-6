@@ -308,11 +308,60 @@ cor.test(residuals, complete_data$dde)
 \par There are a few possible problems and improvements with the imputation approach taken above. Importantly, our approach assumes that observed variables in the data set can explain the missing score values. In addition, even if this assumption holds, the data do not suggest that a linear relationship exists between the score variables and remaining predictor variables. One improvement to our approach would be to propagate the uncertainty associated with estimating missing data into the model. For example, this can be done by refitting our model for each simulated missing score value and then averaging the model results. Another approach would be to estimate missing values using a non-linear model. 
 
 \subsection*{Partial Correlation Analysis}
-We analyzed the partial correlation amongst a \emph{pcb} summary variable, \emph{dde}, and \emph{gestational age} (treated as a continuous response) in order to detect the presence of confounding factors. To control for linear dependences, the first approach involved regressing \emph{dde} and the \emph{pcb} summary variable onto the other predictors using a standard linear model. We then computed the correlation between \emph{dde} and the \emph{pcb} summary variable. To account for possible non-linear dependencies, we also applied the same approch but using a support vector machine. In both cases, the estimated partial correlation was near 0.30. In addition, a small negative correlation was found between the residuals and \emph{gestational age}. The multi-colinearity between \emph{dde} and the \emph{pcb} summary variable suggests a presence of a potential confounding factor. Consequently, the small negative correlation between the predictors and response appeared significant, any causal interpretation is quite limited. 
+We analyzed the partial correlation amongst a \emph{pcb} summary variable, \emph{dde}, and \emph{gestational age} (treated as a continuous response) in order to detect the presence of confounding factors. To control for linear dependencies, the first approach involved regressing \emph{dde} and the \emph{pcb} summary variable onto the other predictors using a standard linear model. We then computed the correlation between \emph{dde} and the \emph{pcb} summary variable. To account for possible non-linear dependencies, we also applied the same approch but using a support vector machine. In both cases, the estimated partial correlation was near 0.30. In addition, a small negative correlation was found between the residuals and \emph{gestational age}. The multi-colinearity between \emph{dde} and the \emph{pcb} summary variable suggests a presence of a potential confounding factor. Consequently, though the small negative correlation between the predictors and response appeared significant, any causal interpretation is quite limited. 
 
-\section*{Conclusion}
+\section{Model}
+Although "preterm birth" is strictly defined as a pregnancy of less than 37 weeks, we know that pregnancies at precisely 37 weeks do not necessarily have poor health outcomes. Therefore, we define two binary variables; we assign "preterm" to observations where the gestational age is less than or equal to 37, and "earlypreterm" to those where the gestational age is less than or equal to 34 weeks. Since these are binary variables, we run logistic regression, and compare our findings from the two analysis. 
 
-\subsection{Model}
+To control for the baseline effects of social factors like race and socioeconomicstatus and other health metrics like triglyceride and cholesterol levels, we regress "preterm" against all other variables. We find that dde, totalpcb, triglycerides, race, and center 37 are statistically significant. We do the same with "earlypreterm" and find only totalpbc and race to be significant. The tables below provide effect size and pvalues for DDE and PCB, the variables of interest.
+<<r, echo=FALSE, warning=FALSE, fig.height=5>>=
+data = readRDS("Longnecker.rds")
+
+data = data %>%
+ select(-albumin) %>%
+ filter(gestational_age < 60)
+
+complete_data = data[complete.cases(data), ]
+complete_data <- mutate(complete_data, preterm = case_when(
+ gestational_age<37 ~ 1,
+ gestational_age>=37 ~ 0
+), earlypreterm = case_when(
+ gestational_age<34 ~ 1,
+ gestational_age>=34 ~ 0
+), totalpcb = pcb_028 + pcb_052 + pcb_074 + pcb_105 + pcb_118 + pcb_153 + pcb_170 + pcb_138 + pcb_180 +pcb_194 +pcb_203,
+ race = factor(ifelse(race=="white", "white", "other")),
+ center = factor(center),
+ smoking_status = factor(ifelse(smoking_status, "smoking", "non-smoking"))
+)
+
+#Models for preterm
+model.base <- glm(preterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center-1, data = complete_data, family = "binomial")
+@
+
+We compare this result with Bayesian Model Averaging.
+<<r,echo=FALSE, warning=FALSE, fig.height=5, cache= TRUE>>=
+bas.model.base <- bas.glm(preterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
+image(bas.model.base)
+@
+
+Since cases classified as preterm and early preterm comprise relatively small porportions of the data, and since we reduced the individual PCB variables into one aggregate totalpcb variable, we check the significance of these variables through Bayesian Model Averaging (BMA). This process works by assigning a prior distribution to the set of possible models, and then uses the observed data set to calculate posterior probabilities for each of the possible models. One advantage of this method is that we obtain a posterior probability for each variable, which serves as a way to quantify undercertainty about each variable's statistical significance. 
+
+Using a uniform prior distribution on the set of models, we conduct BMA on the models outlined above. The posterior probabilities of each variable are provided below.
+
+<<r,echo=FALSE, warning=FALSE, fig.height=5, cache= TRUE}>>=
+#Models for early preterm
+model.base.early <- glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = "binomial")
+
+bas.model.base.early <- bas.glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
+image(bas.model.base.early)
+@
+
+BMA mostly confirms the statstical significances found through logistic regression, but notbaly highlights uncertainty about the explanatory power of PCB in the model. We believe this inconsistency is due to the low number of preterm and earlypreterm births observed in the dataset, and note that further study should be done to asses the statistical significance of PCB. 
+
+
+(SHOULD THIS GO IN CONCLUSION?)
+In comparing results based on different definitions of preterm birth, we find that it is likely the case that DDE (and to a lesser extent, PCB) are associated with early birth. However, in the more extreme cases, where gestational age is less than 34 years, there are likely other factors not represented in the data that account for this difference.
+
 
 \end{document}
 
