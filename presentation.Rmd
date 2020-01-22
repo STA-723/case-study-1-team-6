@@ -7,12 +7,15 @@ output:
 ## Longnecker data and the Collaborative Perinatal Project
 
 - Data from the National Collaborative Perinatal Project (CPP) 
-- Relates gest  ational age to chemical exposure (DDE and PCBs) and other factors in 2380 pregnant women. 
+- Relates gestational age to chemical exposure (DDE and PCBs) and other factors in 2380 pregnant women.
 
 ### Goal:
 
 - Assess how exposure to DDE and PCBs impact the risk of preterm birth, defined as delivery before 37 weeks.
 
+### This talk:
+
+- Walk through some of our thought process addressing this.
 
 ## Data cleaning and transformations
 
@@ -93,6 +96,7 @@ ggplot(data, aes(x = gestational_age, color = race)) +
       plot.title = element_text(hjust = 0))
 ```
 
+<!--
 ## A look at the data
 
 ```{r, echo=FALSE, warning=FALSE, fig.height=5}
@@ -116,30 +120,66 @@ p4 = data %>% ggplot(aes(x=totalpcb, color=term_class)) +
 cowplot::plot_grid(p3, p4, rel_widths = c(1,1.5))
 ```
 
+-->
+
 ## A look at the data
 
+```{r, echo=FALSE, warning=FALSE, fig.height=5}
+limits = c(-Inf, quantile(data$dde, c(0.25, 0.5, 0.75)), Inf)
+
+prop_CI <- function(dat, level=0.95) {
+  prop.test(sum(dat), length(dat), conf.level = level)$conf.int
+}
+
+p1 = data %>% 
+  mutate(dde_range = cut(data$dde, limits)) %>% 
+  group_by(dde_range, race) %>% 
+  summarise(late_risk = mean(preterm),
+            ymin = prop_CI(preterm)[1],
+            ymax = prop_CI(preterm)[2]) %>% 
+  ggplot(aes(x=dde_range, y=late_risk, color=race, group=race)) + 
+  geom_line(position=position_dodge(0.2), size=1.2) +
+  geom_pointrange(aes(ymin=ymin, ymax=ymax), position=position_dodge(0.2)) +
+  ylab("Preterm risk (< 37 weeks)") +
+  theme_minimal() +
+  theme(text = element_text(size=16), 
+    legend.position="none",
+    legend.key.size = unit(0.6, "cm"),
+    plot.title = element_text(hjust = 0))
 
 
-## Imputation
+limits = c(-Inf, quantile(data$totalpcb, c(0.25, 0.5, 0.75)), Inf)
 
-- Approximately 79% of the observations were complete cases. Most incomplete cases came from the "score" variables.
+prop_CI <- function(dat, level=0.95) {
+  prop.test(sum(dat), length(dat), conf.level = level)$conf.int
+}
 
-- A standard Bayesian approach to data imputation was taken for each score variable:
-    - The observed score variables were regressed onto the other predictors.
-    - Missing values were treated as model parameters and were estimated using their respective posterior mean.
-- A few potential problems with this approch:
-    - Treating each score variable as a linear function of the other predictors is hard to justify.
-    - Multicolinearity amongst the predictors (e.g., _cholesterol_ and _triglycerides_).
-- Possible improvements:
-    - Propogate uncertainty associated with using imputation methods.
-    - Apply a non-linear model to estimate missing values. 
+p2 = data %>% 
+  mutate(PCB_range = cut(data$totalpcb, limits)) %>% 
+  group_by(PCB_range, race) %>% 
+  summarise(late_risk = mean(preterm),
+            ymin = prop_CI(preterm)[1],
+            ymax = prop_CI(preterm)[2]) %>% 
+  ggplot(aes(x=PCB_range, y=late_risk, color=race, group=race)) + 
+  geom_line(position=position_dodge(0.2), size=1.2) +
+  geom_pointrange(aes(ymin=ymin, ymax=ymax), position=position_dodge(0.2)) +
+  ylab("Preterm risk (< 37 weeks)") +
+  theme_minimal() +
+  theme(text = element_text(size=16), 
+    legend.position="right",
+    legend.key.size = unit(0.6, "cm"),
+    plot.title = element_text(hjust = 0))
+
+
+cowplot::plot_grid(p1, p2, rel_widths=c(1.2,1.5))
+```
 
 
 ## Model
 
-We first define "preterm" as gestational age less than 37 months, and compare it to "early preterm," defined as  gestational age less than 34 months.
+We first define "preterm" as gestational age less than 37 months, and compare it to "early preterm," defined as gestational age less than 34 months.
 
-Since the response is a binary, We use logistic regression to regress preterm against all other variables. We find that dde, totalpcb, triglycerides, race, and center 37 are statistically significant
+Since the response is a binary, We use logistic regression to regress preterm against all other variables. We find that dde, totalpcb, triglycerides, race, and center 37 have statistically significant effects.
 ```{r, echo=FALSE, warning=FALSE, fig.height=5}
 data = readRDS("Longnecker.rds")
 
@@ -176,6 +216,7 @@ image(bas.model.base)
 ## Model
 
 When we regress "early preterm" through logistic regression, we find only totalbcp and race significant. We compare this with BAS, where we find that only race shows up substantially often in simulated data sets.
+
 ```{r, echo=FALSE, warning=FALSE, fig.height=5, cache= TRUE}
 #Models for early preterm
 model.base.early <- glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income + score_occupation + maternal_age + cholesterol + center, data = complete_data, family = "binomial")
@@ -192,15 +233,18 @@ BAS and GLM produced different results for PCB in each case. We believe this is 
 
 ## Conclusion
 
+- Both models indicated _dde_ may play a role in preterm risk. In addition, _pcb_ appears to play at most a minor role in preterm risk.
 
-- Partial correlation amongst _dde_ and _pcb_ were analyzed through the following procedure: 
+- Partial correlation amongst _dde_ and _pcb_ were analyzed through the following procedure:
   - _dde_ and _pcb_ were regressed onto the other predictors first to remove any linear dependence.
   - The residuals from the model were then extracted and yielded a significant correlation $\rho \approx 0.30$.
-  - This limits any causual interpretation of the effects of _dde_ and _pcb_ on preterm births.
-  - Non-linear dependence was also explored using a support vector machine and produced similiar results.
+  - This limits any causal interpretation of the effects of _dde_ and _pcb_ on preterm births.
+  - Non-linear dependence was also explored using a support vector machine and produced similar results.
 
-- Both models indicated 
+## Improvements
 
-
+- Account for the heterogeneity amongst the different centers. Some centers differed significantly with respect to race, sample size, and occurrence of preterm births.
+- Control for non-linear relationships between the socio-economic variables and preterm risk through a non-linear model.
+- Improve the data imputation method. A couple examples include propagating uncertainty associated with using imputation methods or applying a non-linear model to estimate missing values.
 
 
