@@ -223,9 +223,11 @@ The results should also be considered with care, as we do not expect the logisti
 
 # 4. Discussion
 
-We used a logistic regression to estimate the effect of *dde* and *totalpcb* on preterm risk, controlling for socio-economic and health-related variables. This allowed us to display a significant association between presence of these chemicals and preterm risk: higher concentrations increased the estimated risk of preterm birth. 
+We used a logistic regression to estimate the effect of *dde* and *totalpcb* on preterm risk, controlling for socio-economic, health-related variables, and center heterogeneity (through their baseline effect). This allowed us to display a significant association between presence of these chemicals and preterm risk: higher concentrations increased the estimated risk of preterm birth. A further analysis, based on a hierarchical model, would also allow model coefficients for control variables to vary across centers.
 
 However, important limitations prevent us from drawing definitive conclusions from this analysis. In addition to the issues previously mentioned, our methodological approach could have been improved. First, it is clear that the logistic model, without any transformation of variables or interactions, does not correspond to a plausible data-generating model. In this context, the $p$-values and Bayes factors computed conditionally on null logistic models are not very meaningful, and a non-parametric bootstrap approach to the computation of $p$-values and confidence intervals would have provided more adequate quantification of uncertainty. Second, we could consider non-linear models to better control for the socio-economic and health-related variables. This is considered in the appendix with a random forest regression of gestational age, and a heuristic is proposed to assess variable significance in this context.
+
+
 
 
 
