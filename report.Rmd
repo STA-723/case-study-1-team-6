@@ -3,7 +3,7 @@ title: "Case study 1: Effect of chemical exposures on preterm birth"
 author: 
 - name: Olivier Binette, Brian Kundinger and Joe Mathews
 date: 'January 23, 2020'
-abstract: "We assess the effect of dichlorodiphenyldichloroethene (DDE) and polychlorinated biphenyls (PCBs) on the risk of preterm birth for pregnant women while controlling for socio-economic and health related variables. Since we treat preterm birth as a binary response (preterm/non-preterm birth), we use a logistic regression model, a common statistical model for modeling binary response data under a set of parametric assumptions. In addition, we attempt to validate results from the logistic regression model using Bayesian model averaging.  Our analysis indicates a potential association between DDE, PCB, and risk of preterm birth, though any causal conclusions are limited. To explore non-linear dependencies, a comparison between the logistic regression and a random forest model is given in the appendix."
+abstract: "We assess the effect of dichlorodiphenyldichloroethene (DDE) and polychlorinated biphenyls (PCBs) on the risk of preterm birth using a logistic regression and controlling for socio-economic and health-related variables. Our analysis indicates an important association between DDE, PCB, and risk of preterm birth, although their individual effects cannot be clearly singled out. These results are validated in data visualizations, using Bayesian model averaging, and by considering the application of more complex models accounting for non-linear associations."
 output: 
   pdf_document:
     keep_tex: true
@@ -16,7 +16,6 @@ header-includes:
 linestretch: 1
 link-citations: yes
 linkcolor: blue
-geometry: margin=0.75in
 fontfamily: mathpazo
 fontsize: 10pt
 bibliography: biblio.bib
@@ -34,7 +33,7 @@ source("prettyplot.R")
 
 # 1. Introduction
 
-This study attempts to assess the effect of dichlorodiphenyldichloroethene (DDE) and polychlorinated biphenyls (PCBs) on the risk of preterm birth for pregnant women. This paper will first provide findings from exploratory data analysis, discuss challenges for our analysis given these findings. We then conduct logistic regression on the data provided, assess the validity of those results through Bayesian Model Averaging, and then compare these results to those found through a Random Forest Model.
+We attempt to assess the effect of dichlorodiphenyldichloroethene (DDE) and polychlorinated biphenyls (PCBs) on the risk of preterm birth for pregnant women, considering heterogeneity accross medical centers and controlling for a set of potentially confounding variables. After discussing the data and associated challenges in Section 2, we assess the effect of these chemicals through a logistic regression. The results are detailed in Section 3. The appendix validates our findings with further  analyses.
 
 # 2. Materials and Methods
 
@@ -81,7 +80,7 @@ data_i = read.csv("data_i.csv")
 data_i = data_i %>% mutate(totalpcb=data$totalpcb)
 ```
 
-```{r marginal effect plot, echo=FALSE, fig.width=6.5, fig.height=1.8, fig.cap="Marginal relationship between empirical preterm risk and chemical exposures, without controlling for socio-economic and health variables. The exposure ranges have been defined so that each class contains 25% of the observations and vertical lines represent 95% confidence intervals for the estimated risk."}
+```{r marginal effect plot, echo=FALSE, fig.width=6.5, fig.height=2.5, fig.cap="Marginal relationship between empirical preterm risk and chemical exposures, without controlling for socio-economic and health variables. The exposure ranges have been defined so that each class contains 25% of the observations and vertical lines represent 95% confidence intervals for the estimated risk."}
 limits = c(-Inf, quantile(data$dde, c(0.25, 0.5, 0.75)), Inf)
 
 prop_CI <- function(dat, level=0.95) {
@@ -191,7 +190,7 @@ pcb_curve = pcb_effect(q)
 ```
 
 
-```{r, echo=FALSE, fig.width=4, fig.height=1.8, fig.align="center", fig.cap="Multiplicative effect of dde and totalpcb on the odds ratio of preterm to non-preterm birth, as a function of the empirical dde or pcb concentration quantile. Confidence intervals are represented by shaded regions, and the plot is truncated on the right at the 0.99 quantile."}
+```{r, echo=FALSE, fig.width=4, fig.height=2.5, fig.align="center", fig.cap="Multiplicative effect of dde and totalpcb on the odds ratio of preterm to non-preterm birth, as a function of the empirical dde or pcb concentration quantile. Confidence intervals are represented by shaded regions, and the plot is truncated on the right at the 0.99 quantile."}
 par(mar=c(2.5,2.5,1,1))
 plot(q, pcb_curve[1,], type="l", lwd=2, col=2,
       xlab="Concentration quantile",
