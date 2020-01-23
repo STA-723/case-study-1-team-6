@@ -414,7 +414,7 @@ vline(dde_accuracy, col=cmap.knitr(2), lty=1, lwd=2)
 
 This shows *dde* has a much more significant effect on predictive accuracy than a random noise covariate would have, even after controlling for the other confounding variables. The results obtained in the main analysis are therefore somewhat robust to the consideration of non-linear relationships in the data.
 
-The above heuristic is not exactly standard, but it can be interpreted, for example, in the context of a standard linear model with gaussian errors. Using the $R^2$ goodness of fit statistic in this linear model context, the above procedure is entirely equivalent to a standard $F$-test (there's a proof on Olivier's blog).
+The above heuristic is not exactly standard, but it can be interpreted, for example, in the context of a standard linear model with gaussian errors. Using the $R^2$ goodness of fit statistic in this linear model context, the above procedure is entirely equivalent to a standard $F$-test. For non-linear models, it is not quite as clear wether a white noise null hypothesis is appropriate. Randomly permuting the dde values could alternatively provide a distribution for the random noise covariate. This doesn't noticeably change the results in our case.
 
 ```{r, cache=TRUE}
 #library(parallel)
