@@ -321,7 +321,7 @@ plot.envelopes <- function(out, level) {
           border=NA, col=adjustcolor(cmap.knitr(0), alpha.f=.15))
 }
 
-cor.im <- function(df, order="", size=1) {
+cor.im <- function(df, order="", size=1, ...) {
   
   # Ordering variables
   if (order == "hclust") {
