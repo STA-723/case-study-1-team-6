@@ -3,7 +3,7 @@ title: "Case study 1: Effect of chemical exposures on preterm birth"
 author: 
 - name: Olivier Binette, Brian Kundinger and Joe Mathews
 date: 'January 23, 2020'
-abstract: "Logistic Regression is a common statistical technique that provides reliable results under a set of often-fulfilled assumptions. However, once those assumptions are violated (ie. normal distribution of errors), its estimates become much less accurate. This paper will demonstrate how a Random Forest model greatly improves statistical modeling over logistic regression when dealing with nonstandard data."
+abstract: "We assess the effect of dichlorodiphenyldichloroethene (DDE) and polychlorinated biphenyls (PCBs) on the risk of preterm birth for pregnant women while controlling for socio-economic and health related variables. Since we treat preterm birth as a binary response (preterm/non-preterm birth), we use a logistic regression model, a common statistical model for modeling binary response data under a set of parametric assumptions. In addition, we attempt to validate results from the logistic regression model using Bayesian model averaging.  Our analysis indicates a potential association between DDE, PCB, and risk of preterm birth, though any causal conclusions are limited. To explore non-linear dependencies, a comparison between the logistic regression and a random forest model is given in the appendix."
 output: 
   pdf_document:
     keep_tex: true
