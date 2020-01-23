@@ -374,7 +374,7 @@ In comparing results based on different definitions of preterm birth, we find th
 
 ## Non-linear interactions
 
-We use a random forest to regress *gestational_age* onto the other variables (the same used as in the main analysis). In comparison to the abysmall predictive accuracy of the logistic regression model ($85\%$, which is barely better than a trivial classifier in this context), the random forest model correctly classifies $95.5\%$ of the cases over the training data. While there could be overffiting here, this is inconsequential in the interpretation of the following analysis.
+We use a random forest to regress *gestational_age* onto the other variables (the same used as in the main analysis). In comparison to the abysmal predictive accuracy of the logistic regression model ($85\%$, which is barely better than a trivial classifier in this context), the random forest model correctly classifies $95.5\%$ of the cases over the training data. While there could be overffiting here, this is inconsequential in the interpretation of the following analysis.
 
 In order to assess the importance of the dde variable in this context, we consider the distribution of the random forest predictive accuracy when *dde* is replaced by white noise. This is plotted below.
 
