@@ -27,7 +27,6 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
 library(tidyverse)
 library(cowplot)
-library(tableone)
 library(BAS)
 source("prettyplot.R")
 ```
@@ -238,6 +237,10 @@ However, important limitations prevent us from drawing definitive conclusions fr
 
 ## Data visualization
 
+We plot some aspect of the data below, showcasing the marginal association between some of the variables and gestational age.
+
+First, we consider the gestational age distribution disaggregated by race. The left panel below further distinguishes smoking and non-smoking women, and the right panel shows the gestational age distribution in the different centers. We notice that non-white women have a much heavier left tail of gestational age, corresponding to higher preterm risk. Smoking also seems to affect preterm risk, but to a lesser extent. On the right, we notice slight heterogeneity between centers, with only a few of them notably differing from the others (centers 10 and 55).
+
 ```{r, fig.align="center", fig.width=7.5, fig.height=2.5}
 p1 = ggplot(data, aes(x = gestational_age, color = race)) +
   geom_density(aes(linetype=smoking_status), bw=0.8) +
@@ -259,6 +262,8 @@ p2 = ggplot(data, aes(x = gestational_age, color=center)) +
 cowplot::plot_grid(p1, p2, rel_widths=c(1,1.5))
 ```
 
+Next, we plot the distribution of chemical concentrations, disaggregating among women with late preterm ( $\geq 34$ weeks and $< 37$ weeks), very preterm ($< 34$ weeks) or non-preterm births. For women with late preterm birth, the chemical concentration distribution seems heavier on the right. This is not clearly seen for women with very preterm births, although not seeing an effect here may be due to the low sample size in this category.
+
 ```{r, fig.align="center", fig.width=7.5, fig.height=2.5}
 p3 = data %>% ggplot(aes(x=dde, color=term_class)) + 
   geom_density(bw=10) + 
@@ -275,6 +280,7 @@ p4 = data %>% ggplot(aes(x=totalpcb, color=term_class)) +
 cowplot::plot_grid(p3, p4, rel_widths = c(1.1,1.5))
 ```
 
+Finally, we reproduce Figure 1, which shows preterm risk as a function of range of chemical concentrations, adding to it the empirical very preterm risks. There is no clear marginal relationship between chemical concentrations and very preterm risks.
 
 ```{r, fig.align="center", fig.width=7.5, fig.height=2.5}
 limits = c(-Inf, quantile(data$dde, c(0.25, 0.5, 0.75)), Inf)
@@ -386,14 +392,16 @@ dde_accuracy = mean((predict(outrf, data_i) < 37) == data_i$preterm)
 ```
 
 ```{r, cache=TRUE}
-null_accuracy = sapply(1:500, function(i) {
-  outrf = randomForest(gestational_age ~ race + smoking_status + center + 
-                    maternal_age + triglycerides + cholesterol +
-                    score_income_i + score_education_i + score_occupation_i +
-                    rnorm(nrow(data_i)) + totalpcb, 
-                    data=data_i)
-  mean((predict(outrf, data_i) < 37) == data_i$preterm)
-})
+#library(parallel)
+
+#null_accuracy = mclapply(1:300, function(i) {
+#  outrf = randomForest(gestational_age ~ race + smoking_status + center + 
+#                    maternal_age + triglycerides + cholesterol +
+#                    score_income_i + score_education_i + score_occupation_i +
+#                    rnorm(nrow(data_i)) + totalpcb, 
+#                    data=data_i)
+#  mean((predict(outrf, data_i) < 37) == data_i$preterm)
+#}, mc.cores=15)
 ```
 
 
