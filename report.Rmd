@@ -17,7 +17,7 @@ link-citations: yes
 linkcolor: blue
 geometry: margin=1in
 fontfamily: mathpazo
-fontsize: 11pt
+fontsize: 10pt
 ---
 
 ```{r setup, include=FALSE}
@@ -154,20 +154,22 @@ The importance of the *dde* and *totalpcb* variables is assessed by: (1) testing
 ```{r, echo=FALSE, include=FALSE, message=FALSE}
 model.base <- glm(preterm ~ -1 + race + smoking_status + center + 
                     maternal_age + triglycerides + cholesterol +
-                    score_income + score_education + score_occupation +
+                    score_income_i + score_education_i + score_occupation_i +
                     dde + totalpcb, 
                   family="binomial", data=data_i)
 summary(model.base)
 
 model.base.nochems <- glm(preterm ~ -1 + race + smoking_status + center + 
                         maternal_age + triglycerides + cholesterol +
-                        score_income + score_education + score_occupation, 
+                        score_income_i + score_education_i + score_occupation_i, 
                       family="binomial", data=data_i)
 
 anova(model.base, model.base.nochems, test="Chisq")
 ```
 
 # 3. Results
+
+Figure 2 below shows the clinically significant estimated effects of the *dde* and *totalpcb* variables. The estimated odds ratio, i.e. the estimated probability of preterm birth to non-preterm birth, can more than double as exposure to *dde* or *totalpcb* goes from zero to some of the larger concentration values observed in the dataset. This is roughly comparable to the marginal effect (which does not take into account the control variables) shown in the left panel of Figure 1. Note that the *dde* and *totalpcb* are correlated ($\hat \rho = -0.29$), contributing to the rather large width of the confidence intervals. Furthermore, we warn that the estimated multiplicative effect in the tail may be unreliable. While we expect the logistic regression to properly capture an overall trend, there is not reason for it to adequately fit all features of the data.
 
 ```{r, echo=FALSE, include=FALSE, cache=TRUE}
 dde_est = c(coef(model.base)["dde"], confint(model.base)["dde",])
@@ -192,15 +194,6 @@ pcb_curve = pcb_effect(q)
 ```
 
 
-```{r, echo=FALSE, results='asis'}
-cat("
-|               | *dde*         | *totalpcb*  | jointly                     |
-|--------------:|:-------------:|:-----------:|:---------------------------:|
-| $p$-value     | 0.0032        | 0.023       |   0.00014                   |
-| $B(p)$        |     1/20      |  1/4.2      | 1/290                       |
-")
-```
-
 ```{r, echo=FALSE, fig.width=4, fig.height=2.2, fig.align="center", fig.cap="Multiplicative effect of dde and totalpcb on the odds ratio of preterm to non-preterm birth, as a function of the empirical dde or pcb concentration quantile. Confidence intervals are represented by shaded regions, and the plot is truncated on the right at the 0.99 quantile."}
 par(mar=c(3,3,1,1))
 plot(q, pcb_curve[1,], type="l", lwd=2, col=2,
@@ -216,10 +209,21 @@ polygon(c(q, rev(q)), c(dde_curve[2,], rev(dde_curve[3,])), border=NA,
 legend("topleft", c("dde", "pcb"), col=c(cmap.knitr(1), cmap.knitr(2)), lty=1, cex=0.8)
 ```
 
+Furthermore, the *dde* and *totalpcb* variables have statistically significant effects: it is unlikely that a trend of this order would have arised by chance under the logistic model. The $p$-values computed can be interpreted on the $-e p \log(p)$ scale: the Bayes factor in favor of a non-null effect could be up to 47 to 1 for the *dde* variable, and up to 5.8 to 1 for the *totalpcb* variable. 
 
-The estimates in the tails should be understood with care, but there is a clinically significant trend and effect.
+```{r, echo=FALSE, results='asis'}
+cat("
+|               | *dde*         | *totalpcb*  | jointly                     |
+|--------------:|:-------------:|:-----------:|:---------------------------:|
+| $p$-value     | $1.2\\cdot 10^{-3}$  | $1.5 \\cdot 10^{-2}$ |$2.27 \\cdot 10^{-5}$|
+| $B(p)$        |     1/47      |  1/5.8      | 1/1514                       |
+")
+```
 
-Careful with wrong model: the results summarize one interesting aspect of the data, but do not mean much about the nature of things and the "existence" of a dde or pcb effect.
+These results should be interpreted with care, as we do not expect the logistic model to correctly capture the data-generating mechanism. Inference about the "existence" of an effect is not meaningful in this context, and our analysis should be understood as only showcasing a particular aspect of this dataset.
+
+The effect of *dde* and *totalpcb* on preterm risk found in this data, after superficially controlling for confounding factors, should be very concerning. However, we cannot currently single out any of these two variables as having a distinct effect on preterm birth while the partial correlation between them hints at unmeasured confounders.
+
 
 # 4. Discussion
 
