@@ -16,7 +16,7 @@ header-includes:
 linestretch: 1
 link-citations: yes
 linkcolor: blue
-geometry: margin=1in
+geometry: margin=0.75in
 fontfamily: mathpazo
 fontsize: 10pt
 bibliography: biblio.bib
@@ -81,7 +81,7 @@ data_i = read.csv("data_i.csv")
 data_i = data_i %>% mutate(totalpcb=data$totalpcb)
 ```
 
-```{r marginal effect plot, echo=FALSE, fig.width=6.5, fig.height=2, fig.cap="Marginal relationship between empirical preterm risk and chemical exposures, without controlling for socio-economic and health variables. The exposure ranges have been defined so that each class contains 25% of the observations and vertical lines represent 95% confidence intervals for the estimated risk."}
+```{r marginal effect plot, echo=FALSE, fig.width=6.5, fig.height=1.8, fig.cap="Marginal relationship between empirical preterm risk and chemical exposures, without controlling for socio-economic and health variables. The exposure ranges have been defined so that each class contains 25% of the observations and vertical lines represent 95% confidence intervals for the estimated risk."}
 limits = c(-Inf, quantile(data$dde, c(0.25, 0.5, 0.75)), Inf)
 
 prop_CI <- function(dat, level=0.95) {
@@ -191,11 +191,12 @@ pcb_curve = pcb_effect(q)
 ```
 
 
-```{r, echo=FALSE, fig.width=4, fig.height=2.2, fig.align="center", fig.cap="Multiplicative effect of dde and totalpcb on the odds ratio of preterm to non-preterm birth, as a function of the empirical dde or pcb concentration quantile. Confidence intervals are represented by shaded regions, and the plot is truncated on the right at the 0.99 quantile."}
-par(mar=c(3,3,1,1))
+```{r, echo=FALSE, fig.width=4, fig.height=1.8, fig.align="center", fig.cap="Multiplicative effect of dde and totalpcb on the odds ratio of preterm to non-preterm birth, as a function of the empirical dde or pcb concentration quantile. Confidence intervals are represented by shaded regions, and the plot is truncated on the right at the 0.99 quantile."}
+par(mar=c(2.5,2.5,1,1))
 plot(q, pcb_curve[1,], type="l", lwd=2, col=2,
       xlab="Concentration quantile",
-     ylab="Multiplicative effect")
+     ylab="Multiplicative effect",
+     line=1.5)
 polygon(c(q, rev(q)), c(pcb_curve[2,], rev(pcb_curve[3,])), border=NA, 
         col=adjustcolor(cmap.knitr(2), alpha.f=0.2))
 
