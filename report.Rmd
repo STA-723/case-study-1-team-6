@@ -34,9 +34,7 @@ source("prettyplot.R")
 
 # 1. Introduction
 
-
-
-
+This study attempts to assess the effect of dichlorodiphenyldichloroethene (DDE) and polychlorinated biphenyls (PCBs) on the risk of preterm birth for pregnant women. This paper will first provide findings from exploratory data analysis, discuss challenges for our analysis given these findings. We then conduct logistic regression on the data provided, assess the validity of those results through Bayesian Model Averaging, and then compare these results to those found through a Random Forest Model.
 
 # 2. Materials and Methods
 
@@ -354,8 +352,6 @@ cowplot::plot_grid(p1, p2, rel_widths=c(1.1,1.5))
 
 ## Bayesian model averaging
 
-We compare this result with Bayesian Model Averaging.
-
 ```{r,echo=FALSE, warning=FALSE, fig.height=5, cache= TRUE}
 bas.model.base <- bas.glm(preterm ~ dde + totalpcb + triglycerides + race + score_education_i + score_income_i + score_occupation_i + maternal_age + cholesterol + center, data = data_i, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
 image(bas.model.base)
@@ -364,15 +360,6 @@ image(bas.model.base)
 Since cases classified as preterm and early preterm comprise relatively small porportions of the data, and since we reduced the individual PCB variables into one aggregate totalpcb variable, we check the significance of these variables through Bayesian Model Averaging (BMA). This process works by assigning a prior distribution to the set of possible models, and then uses the observed data set to calculate posterior probabilities for each of the possible models. One advantage of this method is that we obtain a posterior probability for each variable, which serves as a way to quantify undercertainty about each variable's statistical significance.
 
 Using a uniform prior distribution on the set of models, we conduct BMA on the models outlined above. The posterior probabilities of each variable are provided below.
-
-```{r,echo=FALSE, warning=FALSE, fig.height=5, cache= TRUE}
-data_i = data_i %>% mutate(earlypreterm = preterm < 34)
-#Models for early preterm
-model.base.early <- glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education + score_income_i + score_occupation_i + maternal_age + cholesterol + center, data = data_i, family = "binomial")
-
-bas.model.base.early <- bas.glm(earlypreterm ~ dde + totalpcb + triglycerides + race + score_education_i + score_income_i + score_occupation_i + maternal_age + cholesterol + center, data = data_i, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
-image(bas.model.base.early)
-```
 
 BMA mostly confirms the statstical significances found through logistic regression, but notably highlights uncertainty about the explanatory power of PCB in the model. We believe this inconsistency is due to the low number of preterm and earlypreterm births observed in the dataset, and note that further study should be done to asses the statistical significance of PCB. 
 
