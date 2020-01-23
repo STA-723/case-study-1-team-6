@@ -34,9 +34,7 @@ source("prettyplot.R")
 
 # 1. Introduction
 
-
-
-
+This study attempts to assess the effect of dichlorodiphenyldichloroethene (DDE) and polychlorinated biphenyls (PCBs) on the risk of preterm birth for pregnant women. This paper will first provide findings from exploratory data analysis, discuss challenges for our analysis given these findings. We then conduct logistic regression on the data provided, assess the validity of those results through Bayesian Model Averaging, and then compare these results to those found through a Random Forest Model.
 
 # 2. Materials and Methods
 
