@@ -10,6 +10,7 @@ output:
     fig_caption: true
     latex_engine: pdflatex
     template: svm-latex-ms.tex
+    citation_package: natbib
 header-includes:
   - \usepackage{hyperref}
 linestretch: 1
@@ -18,6 +19,7 @@ linkcolor: blue
 geometry: margin=1in
 fontfamily: mathpazo
 fontsize: 10pt
+bibliography: biblio.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -45,7 +47,7 @@ Our analysis is based on the *Longnecker* dataset (Longnecker et al., 2001), whi
 
 Cleaning up the data, we removed the *albumin* variable, which contained $93\%$ missing values, and dropped observations of pregnancy over $55$ week. The single case with missing *pcb\_\** values was also removed. We are left with $n=2374$ observations and only missing values in the *score\_\** variables ($22\%$).  *Preterm* birth is defined as gestational age strictly less than 37 weeks ($n=361$; $15\%$), and *very preterm* is defined as gestational age strictly less than 34 weeks ($n=103$; $4\%$).
 
-To facilitate data visualization and interpretation of the results, we grouped together the "black" ($n = 1220$) and "other" ($n = 123$) race categories into the single "non-white" category. For similar reasons, we summed together the $11$ positively correlated *pcb\_\** variables, obtaining the *totalpcb* variable. While this preserves units, important information may be lost through this process. Other supervised and unsupervised approaches to summarizing the *pcb\_\** variables are discussed in the appendix.
+To facilitate data visualization and interpretation of the results, we grouped together the "black" ($n = 1220$) and "other" ($n = 123$) race categories into the single "non-white" category. For similar reasons, we summed together the $11$ positively correlated *pcb\_\** variables, obtaining the *totalpcb* variable. While this preserves units, important information may be lost through this process.
 
 &nbsp;
 
@@ -53,7 +55,7 @@ To facilitate data visualization and interpretation of the results, we grouped t
 
 Our scientific understanding of this data and of the data collection process is limited by a lack of documentation. It not possible to identify the represented population without knowledge of the enrollment mechanism, and therefore our observations may not generalize. Futhermore, it is unclear what should be taken as a scientifically meaningful predictor which strongly correlates to environmental exposures. Should we directly consider *dde* or should it be normalized by lipid concentration? This is not something we can address through the data. Given these limitations and the fact that we have explored many models with the stated goal of identifying an interaction between *dde* and preterm birth risk, the results of our analysis should be taken as highly tentative and exploratory in nature.
 
-Futhermore, there is a noticeable partial correlation between the *dde* and *totalpcb* variables ($\rho = 0.3$), after controlling for the linear effect of the other predictors (excluding *gestational\_age*). This could be the shadow of an unobserved confounding variable: unless *dde* and the *pcb\_\** are breakdown products of the same exposure, this hints at another factor contributing to higher chemical concentrations in the blood. This factor or other toxic chemicals could be causaly related to *gestational\_age*, and this prevents us from singling out any potentially causal effect.
+Futhermore, there is a noticeable partial correlation between the *dde* and *totalpcb* variables ($\rho = 0.3$), after controlling for the linear effect of the other predictors (excluding *gestational\_age*). This could be the shadow of an unobserved confounding variable: unless *dde* and the *pcb\_\** are breakdown products of the same exposure, this hints at another factor contributing to higher chemical concentrations in the blood. This prevents us from singling out any potentially causal effect.
 
 ```{r data transformation}
 data = readRDS("Longnecker.rds") %>% 
@@ -141,7 +143,7 @@ cowplot::plot_grid(p1, p2, rel_widths=c(1.1,1.5))
 
 ## 2.2 Missing Values Imputation
 
-The $22\%$ missing values in the *score\_\** variables were imputed under a missing at random assumption using a standard Bayesian framework. We treated the score variables as independent, identically distributed Normal random variables and fitted a Bayesian linear model using the other predictor variables and a non-informative prior. That is, we regressed the observed values of the *score\_\** variables onto the other predictor variables and treat missing score values as model parameters, estimated through their posterior mean.
+The $22\%$ missing values in the *score\_\** variables were imputed under a missing at random assumption using a standard Bayesian framework. We treated the score variables as independent, identically distributed Normal random variables and fitted a Bayesian linear model using the other predictor variables and a non-informative prior. That is, we regressed the observed values of the *score\_\** variables onto the other predictor variables and treated missing score values as model parameters, estimated through their posterior mean.
 
 This approach has two major limitations. First, separating imputation from model fitting prevents the propagation of imputation uncertainty, although the Bayesian formulation would allow to combine the two steps together. Second, our approach assumes that observed variables in the data set can adequately predict the missing score values, or that data is missing at random. Even if this were to be the case, the data does not suggest clear linear relationships between the *score\_\** variables and other predictors. The potential of more complex non-linear models for the analysis of this dataset is considered in the Discussion section.
 
@@ -149,7 +151,7 @@ This approach has two major limitations. First, separating imputation from model
 
 We model the log odds ratio of preterm birth as a linear function of the other covariates and perform maximum likelihood estimation. This allows us to control for the baseline effect of the *race*, *smoking\_status* and *center* factors, and to control for the linear effect of socio-economic and health-related variables (*maternal\_age*, *score\_income*, *score\_education*, *score\_occupation*, *cholesterol*, and *triglycerides*) on the log odds ratio. Appart from *dde* and *totalpcb*, no other variables are incorporated into this base model, and no interaction terms are considered.
 
-The importance of the *dde* and *totalpcb* variables is assessed by: (1) testing for individual and joint statistical significance of the variables; (2) by transforming the associated $p$-values to the more meaningful $B(p) = -e p \log(p)$ scale; and (3) by interpreting the estimated effect size. For part (1), individual statistical significance is based on standard approximate $t$-tests and joint significance is tested with an approximate $\chi^2$ test. The rationale for (2) is that $B(p)$ provides a lower bound on the Bayes factor comparing the null hypothesis of no effect to the alternative (over a large nonparametric class of reasonable prior distributions and when $p < e^{-1}$). For example, a $p$-value of $0.01$ is transformed to $B(0.01) \approx 1/8$: if both the null and the alternative hypotheses are a priori equally likely, then a posteriori the alternative hypothesis cannot be more than 8 times more likely than the null. Our interpretation (3) relies on the multiplicative contribution of the *dde* and *pcb* coefficients on the odds ratio of preterm birth, as a function of the empirical quantiles of exposure.
+The importance of the *dde* and *totalpcb* variables is assessed by: (1) testing for individual and joint statistical significance of the variables; (2) by transforming the associated $p$-values to the more meaningful $B(p) = -e p \log(p)$ scale; and (3) by interpreting the estimated effect size. For part (1), individual statistical significance is based on standard approximate $t$-tests and joint significance is tested with an approximate $\chi^2$ test. The rationale for (2) is that $B(p)$ provides a lower bound on the Bayes factor comparing the null hypothesis of no effect to the alternative (over a large nonparametric class of reasonable prior distributions and when $p < e^{-1}$; see @Sellke2001). For example, a $p$-value of $0.01$ is transformed to $B(0.01) \approx 1/8$: if both the null and the alternative hypotheses are a priori equally likely, then a posteriori the alternative hypothesis cannot be more than 8 times more likely than the null. Our interpretation (3) relies on the multiplicative contribution of the *dde* and *pcb* coefficients on the odds ratio of preterm birth, as a function of the empirical quantiles of exposure.
 
 ```{r, echo=FALSE, include=FALSE, message=FALSE}
 model.base <- glm(preterm ~ -1 + race + smoking_status + center + 
@@ -209,7 +211,7 @@ polygon(c(q, rev(q)), c(dde_curve[2,], rev(dde_curve[3,])), border=NA,
 legend("topleft", c("dde", "pcb"), col=c(cmap.knitr(1), cmap.knitr(2)), lty=1, cex=0.8)
 ```
 
-Furthermore, the *dde* and *totalpcb* variables have statistically significant effects: it is unlikely that a trend of this order would have arised by chance under the logistic model. The $p$-values computed can be interpreted on the $-e p \log(p)$ scale: the Bayes factor in favor of a non-null effect could be up to 47 to 1 for the *dde* variable, and up to 5.8 to 1 for the *totalpcb* variable. 
+Furthermore, the *dde* and *totalpcb* variables have statistically significant effects: it is unlikely that a trend of this order would have arised by chance under the logistic model. The $p$-values computed can be interpreted on the $-e p \log(p)$ scale: the Bayes factor in favor of a non-null effect could be up to 47 to 1 for the *dde* variable, and up to 5.8 to 1 for the *totalpcb* variable.
 
 ```{r, echo=FALSE, results='asis'}
 cat("
@@ -220,16 +222,122 @@ cat("
 ")
 ```
 
-These results should be interpreted with care, as we do not expect the logistic model to correctly capture the data-generating mechanism. Inference about the "existence" of an effect is not meaningful in this context, and our analysis should be understood as only showcasing a particular aspect of this dataset.
-
-The effect of *dde* and *totalpcb* on preterm risk found in this data, after superficially controlling for confounding factors, should be very concerning. However, we cannot currently single out any of these two variables as having a distinct effect on preterm birth while the partial correlation between them hints at unmeasured confounders.
+The effect of *dde* and *totalpcb* on preterm risk found in this data, after superficially controlling for confounding factors, is very concerning. However, we cannot currently single out any of these two variables as having a distinct effect on preterm birth while the partial correlation between them hints at unmeasured confounders.
+The results should also be considered with care, as we do not expect the logistic model to correctly capture the data-generating mechanism. Inference about the "existence" of an effect is not meaningful in this context, and our analysis should be understood as only showcasing a particular aspect of this data.
 
 
 # 4. Discussion
 
+\newpage
+
+# Appendix
+
+## Data visualization
+
+```{r, fig.align="center", fig.width=7.5, fig.height=2.5}
+p1 = ggplot(data, aes(x = gestational_age, color = race)) +
+  geom_density(aes(linetype=smoking_status), bw=0.8) +
+  theme_minimal() +
+  theme(text = element_text(size=8), 
+      legend.position = "right",
+      legend.key.size = unit(0.35, "cm"),
+      plot.title = element_text(hjust = 0))
+
+p2 = ggplot(data, aes(x = gestational_age, color=center)) +
+  geom_density(bw=2) + 
+  theme_minimal() + 
+  theme(text = element_text(size=8), 
+    legend.position="right",
+    legend.key.size = unit(0.35, "cm"),
+    plot.title = element_text(hjust = 0)) +
+  facet_wrap(vars(race))
+
+cowplot::plot_grid(p1, p2, rel_widths=c(1,1.5))
+```
+
+```{r, fig.align="center", fig.width=7.5, fig.height=2.5}
+p3 = data %>% ggplot(aes(x=dde, color=term_class)) + 
+  geom_density(bw=10) + 
+  theme_minimal() + 
+  theme(legend.position = "none") + 
+  facet_wrap(vars(race))
+
+p4 = data %>% ggplot(aes(x=totalpcb, color=term_class)) + 
+  geom_density(bw=1.4) + 
+  theme_minimal() + 
+  ylab("") +
+  facet_wrap(vars(race))
+
+cowplot::plot_grid(p3, p4, rel_widths = c(1.1,1.5))
+```
 
 
+```{r, fig.align="center", fig.width=7.5, fig.height=2.5}
+limits = c(-Inf, quantile(data$dde, c(0.25, 0.5, 0.75)), Inf)
 
+prop_CI <- function(dat, level=0.95) {
+  prop.test(sum(dat), length(dat), conf.level = level)$conf.int
+}
+
+p1 = data %>% 
+  mutate(dde_cut = cut(data$dde, limits),
+         very_preterm = gestational_age < 34,
+         preterm = gestational_age < 37) %>% 
+  group_by(dde_cut, race) %>% 
+  summarise(very_risk = mean(very_preterm),
+            late_risk = mean(preterm),
+            ymin_very = prop_CI(very_preterm)[1],
+            ymax_very = prop_CI(very_preterm)[2],
+            ymin_late = prop_CI(preterm)[1],
+            ymax_late = prop_CI(preterm)[2]) %>% 
+  ggplot(aes(x=dde_cut, y=very_risk, color=race, group=race)) + 
+  geom_line(position=position_dodge(0.2), linetype=2) +
+  geom_pointrange(aes(ymin=ymin_very, ymax=ymax_very), position=position_dodge(0.2)) +
+  geom_point(aes(x=dde_cut, y=late_risk, color=race, group=race), position=position_dodge(0.2), size=2.6) +
+  geom_line(aes(x=dde_cut, y=late_risk, color=race, group=race), position=position_dodge(0.2)) +
+  geom_pointrange(aes(ymin=ymin_late, ymax=ymax_late), position=position_dodge(0.2)) +
+  ylab("Preterm risks") +
+  xlab("dde exposure range") +
+  theme_minimal() +
+  theme(text = element_text(size=10), 
+    legend.position="none",
+    plot.title = element_text(hjust = 0))
+
+# PCB
+
+limits = c(-Inf, quantile(data$totalpcb, c(0.25, 0.5, 0.75)), Inf)
+
+prop_CI <- function(dat, level=0.95) {
+  prop.test(sum(dat), length(dat), conf.level = level)$conf.int
+}
+
+p2 = data %>% 
+  mutate(dde_cut = cut(data$totalpcb, limits),
+         very_preterm = gestational_age < 34,
+         preterm = gestational_age < 37) %>% 
+  group_by(dde_cut, race) %>% 
+  summarise(very_risk = mean(very_preterm),
+            late_risk = mean(preterm),
+            ymin_very = prop_CI(very_preterm)[1],
+            ymax_very = prop_CI(very_preterm)[2],
+            ymin_late = prop_CI(preterm)[1],
+            ymax_late = prop_CI(preterm)[2]) %>% 
+  ggplot(aes(x=dde_cut, y=very_risk, color=race, group=race)) + 
+  geom_line(position=position_dodge(0.2), linetype=2) +
+  geom_pointrange(aes(ymin=ymin_very, ymax=ymax_very), position=position_dodge(0.2)) +
+  geom_point(aes(x=dde_cut, y=late_risk, color=race, group=race), position=position_dodge(0.2), size=2.6) +
+  geom_line(aes(x=dde_cut, y=late_risk, color=race, group=race), position=position_dodge(0.2)) +
+  geom_pointrange(aes(ymin=ymin_late, ymax=ymax_late), position=position_dodge(0.2)) +
+  ylab("") +
+  xlab("totalpcb exposure range") +
+  theme_minimal() +
+  theme(text = element_text(size=10), 
+    legend.position="right",
+    plot.title = element_text(hjust = 0))
+
+cowplot::plot_grid(p1, p2, rel_widths=c(1.1,1.5))
+
+```
 
 
 

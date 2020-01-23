@@ -143,7 +143,7 @@ p3 = data %>% ggplot(aes(x=dde, color=term_class)) +
   theme(legend.position = "none") + 
   facet_wrap(vars(race))
 
-p4 = data %>% ggplot(aes(x=PCB_summary, color=term_class)) + 
+p4 = data %>% ggplot(aes(x=totalpcb, color=term_class)) + 
   geom_density(bw=1.4) + 
   theme_minimal() + 
   facet_wrap(vars(race))
@@ -362,6 +362,9 @@ BMA mostly confirms the statstical significances found through logistic regressi
 
 (SHOULD THIS GO IN CONCLUSION?)
 In comparing results based on different definitions of preterm birth, we find that it is likely the case that DDE (and to a lesser extent, PCB) are associated with early birth. However, in the more extreme cases, where gestational age is less than 34 years, there are likely other factors not represented in the data that account for this difference.
+
+
+
 
 
 \end{document}
