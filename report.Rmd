@@ -379,7 +379,7 @@ In comparing results based on different definitions of preterm birth, we find th
 ## Non-linear interactions
 
 
-```{r, cache=TRUE}
+```{r, cache=TRUE, echo=FALSE, include=FALSE}
 library(randomForest)
 
 outrf = randomForest(gestational_age ~ race + smoking_status + center + 
