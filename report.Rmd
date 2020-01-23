@@ -373,7 +373,7 @@ In comparing results based on different definitions of preterm birth, we find th
 ## Non-linear interactions
 
 
-```{r, cache=TRUE}
+```{r, cache=TRUE, echo=FALSE, include=FALSE}
 library(randomForest)
 
 outrf = randomForest(gestational_age ~ race + smoking_status + center + 
@@ -383,17 +383,6 @@ outrf = randomForest(gestational_age ~ race + smoking_status + center +
                     data=data_i)
 dde_accuracy = mean((predict(outrf, data_i) < 37) == data_i$preterm)
 
-```
-
-```{r, cache=TRUE}
-null_accuracy = sapply(1:500, function(i) {
-  outrf = randomForest(gestational_age ~ race + smoking_status + center + 
-                    maternal_age + triglycerides + cholesterol +
-                    score_income_i + score_education_i + score_occupation_i +
-                    rnorm(nrow(data_i)) + totalpcb, 
-                    data=data_i)
-  mean((predict(outrf, data_i) < 37) == data_i$preterm)
-})
 ```
 
 
