@@ -3,7 +3,7 @@ title: "Case study 1: Effect of chemical exposures on preterm birth"
 author: 
 - name: Olivier Binette, Brian Kundinger and Joe Mathews
 date: 'January 23, 2020'
-abstract: "abstract..."
+abstract: "Logistic Regression is a common statistical technique that provides reliable results under a set of often-fulfilled assumptions. However, once those assumptions are violated (ie. normal distribution of errors), its estimates become much less accurate. This paper will demonstrate how a Random Forest model greatly improves statistical modeling over logistic regression when dealing with nonstandard data."
 output: 
   pdf_document:
     keep_tex: true
