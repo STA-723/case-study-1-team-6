@@ -280,7 +280,7 @@ p4 = data %>% ggplot(aes(x=totalpcb, color=term_class)) +
 cowplot::plot_grid(p3, p4, rel_widths = c(1.1,1.5))
 ```
 
-Finally, we reproduce Figure 1, which shows preterm risk as a function of range of chemical concentrations, adding to it the empirical very preterm risks. There is no clear marginal relationship between chemical concentrations and very preterm risks.
+Finally, we reproduce below Figure 1, which shows preterm risk as a function of range of chemical concentrations, adding to it the empirical very preterm risks. There is no clear marginal relationship between chemical concentrations and very preterm risks.
 
 ```{r, fig.align="center", fig.width=7.5, fig.height=2.5}
 limits = c(-Inf, quantile(data$dde, c(0.25, 0.5, 0.75)), Inf)
@@ -378,6 +378,9 @@ In comparing results based on different definitions of preterm birth, we find th
 
 ## Non-linear interactions
 
+We use a random forest to regress *gestational_age* onto the other variables (the same used as in the main analysis). In comparison to the abysmall predictive accuracy of the logistic regression model ($85\%$, which is barely better than a trivial classifier in this context), the random forest model correctly classifies $95.5\%$ of the cases over the training data. While there could be overffiting here, this is inconsequential in the interpretation of the following analysis.
+
+In order to assess the importance of the dde variable in this context, we consider the distribution of the random forest predictive accuracy when *dde* is replaced by white noise. This is plotted below.
 
 ```{r, cache=TRUE, echo=FALSE, include=FALSE}
 library(randomForest)
@@ -390,6 +393,28 @@ outrf = randomForest(gestational_age ~ race + smoking_status + center +
 dde_accuracy = mean((predict(outrf, data_i) < 37) == data_i$preterm)
 
 ```
+
+```{r, echo=FALSE, fig.width=4, fig.height=3, fig.align="center", fig.cap="Distribution of the random forest predictive accuracy when dde has been replaced by white noise. The predictive accuracy of the random forest model with the dde variable is marked by a red vertical line."}
+#library(parallel)
+
+#null_accuracy = mclapply(1:300, function(i) {
+#  outrf = randomForest(gestational_age ~ race + smoking_status + center + 
+#                    maternal_age + triglycerides + cholesterol +
+#                    score_income_i + score_education_i + score_occupation_i +
+#                    rnorm(nrow(data_i)) + totalpcb, 
+#                    data=data_i)
+#  mean((predict(outrf, data_i) < 37) == data_i$preterm)
+#}, mc.cores=15)
+
+
+null_accuracy = readRDS("null_accuracy.rds")
+hist(unlist(null_accuracy), xlim=c(0.89, 0.96), xmark = dde_accuracy %>% round(4))
+vline(dde_accuracy, col=cmap.knitr(2), lty=1, lwd=2)
+```
+
+This shows *dde* has a much more significant effect on predictive accuracy than a random noise covariate would have, even after controlling for the other confounding variables. The results obtained in the main analysis are therefore somewhat robust to the consideration of non-linear relationships in the data.
+
+The above heuristic is not exactly standard, but it can be interpreted, for example, in the context of a standard linear model with gaussian errors. Using the $R^2$ goodness of fit statistic in this linear model context, the above procedure is entirely equivalent to a standard $F$-test (there's a proof on Olivier's blog).
 
 ```{r, cache=TRUE}
 #library(parallel)
