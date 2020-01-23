@@ -3,7 +3,7 @@ title: "Case study 1: Effect of chemical exposures on preterm birth"
 author: 
 - name: Olivier Binette, Brian Kundinger and Joe Mathews
 date: 'January 23, 2020'
-abstract: "abstract..."
+abstract: "We assess the effect of dichlorodiphenyldichloroethene (DDE) and polychlorinated biphenyls (PCBs) on the risk of preterm birth for pregnant women while controlling for socio-economic and health related variables. Since we treat preterm birth as a binary response (preterm/non-preterm birth), we use a logistic regression model, a common statistical model for modeling binary response data under a set of parametric assumptions. In addition, we attempt to validate results from the logistic regression model using Bayesian model averaging.  Our analysis indicates a potential association between DDE, PCB, and risk of preterm birth, though any causal conclusions are limited. To explore non-linear dependencies, a comparison between the logistic regression and a random forest model is given in the appendix."
 output: 
   pdf_document:
     keep_tex: true
@@ -352,15 +352,22 @@ cowplot::plot_grid(p1, p2, rel_widths=c(1.1,1.5))
 
 
 ## Bayesian model averaging
+Since cases classified as preterm and early preterm comprise relatively small porportions of the data, and since we reduced the individual PCB variables into one aggregate totalpcb variable, we check the significance of these variables through Bayesian Model Averaging (BMA). This process works by assigning a prior distribution to the set of possible models, and then uses the observed data set to calculate posterior probabilities for each of the possible models. One advantage of this method is that we obtain a posterior probability for each variable, which serves as a way to quantify undercertainty about each variable's statistical significance.
+
+Using a uniform prior distribution on the set of models, we conduct BMA on the models outlined above. The posterior probabilities of each variable are provided below.
 
 ```{r,echo=FALSE, warning=FALSE, fig.height=5, cache= TRUE}
 bas.model.base <- bas.glm(preterm ~ dde + totalpcb + triglycerides + race + score_education_i + score_income_i + score_occupation_i + maternal_age + cholesterol + center, data = data_i, family = binomial(link = "logit"), modelprior = uniform(), MCMC.iterations = 10000)
 image(bas.model.base)
 ```
 
-Since cases classified as preterm and early preterm comprise relatively small porportions of the data, and since we reduced the individual PCB variables into one aggregate totalpcb variable, we check the significance of these variables through Bayesian Model Averaging (BMA). This process works by assigning a prior distribution to the set of possible models, and then uses the observed data set to calculate posterior probabilities for each of the possible models. One advantage of this method is that we obtain a posterior probability for each variable, which serves as a way to quantify undercertainty about each variable's statistical significance.
-
-Using a uniform prior distribution on the set of models, we conduct BMA on the models outlined above. The posterior probabilities of each variable are provided below.
+```{r, echo=FALSE, results='asis'}
+cat("
+|               | *dde*         | *totalpcb*  | *race* |
+|--------------:|:-------------:|:-----------:|:-------:|
+| Inclusion Probability     | 0.96 | 0.20 |0.98|
+")
+```
 
 BMA mostly confirms the statstical significances found through logistic regression, but notably highlights uncertainty about the explanatory power of PCB in the model. We believe this inconsistency is due to the low number of preterm and earlypreterm births observed in the dataset, and note that further study should be done to asses the statistical significance of PCB. 
 
